@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Pharma Analytics Field Guide</title>
+<meta name="description" content="An interactive field guide to pharma commercial &amp; data analytics, for freshers, mid-level analysts, and anyone needing a refresher.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F6F3; --paper:#FFFFFF; --ink:#1C2321; --muted:#5B655F;
+    --line:#DEE3DD; --teal:#0D6E63; --teal-deep:#0A4F47; --teal-soft:#E4F1EE;
+    --amber:#8A5D10; --amber-soft:#FBF1DC; --amber-line:#E9D8AF;
+    --rose:#8C3A3A; --rose-soft:#F7E8E6; --rose-line:#E7C9C4;
+    --green:#2E7D4F; --green-soft:#E3F1E8;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:16px;line-height:1.55;}
+  h1,h2,h3,h4{font-family:'Source Serif 4',Georgia,serif;line-height:1.18;margin:0 0 8px;}
+  code,.mono{font-family:'IBM Plex Mono',monospace;}
+  button{font-family:inherit;cursor:pointer;}
+  .hide{display:none !important;}
+  .fresher-hint{display:none;background:var(--amber-soft);border-left:3px solid var(--amber-line);border-radius:6px;padding:9px 13px;font-size:0.88rem;color:#6b4a0e;margin:10px 0 2px;}
+  .fresher-hint::before{content:"For newcomers: ";font-weight:600;}
+  body[data-track="fresher"] .fresher-hint{display:block;}
+
+  /* ---------- Top bar ---------- */
+  .topbar{position:sticky;top:0;z-index:50;background:rgba(255,255,255,0.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);}
+  .topbar-inner{max-width:1080px;margin:0 auto;display:flex;align-items:center;gap:14px;padding:12px 22px;flex-wrap:wrap;}
+  .brand{font-family:'Source Serif 4',serif;font-weight:700;font-size:1.05rem;color:var(--teal-deep);white-space:nowrap;}
+  .brand span{color:var(--amber);}
+  .nav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto;}
+  .nav button{background:none;border:none;color:var(--muted);font-size:0.9rem;font-weight:500;padding:7px 12px;border-radius:7px;}
+  .nav button:hover{background:var(--teal-soft);color:var(--teal-deep);}
+  .nav button.active{background:var(--teal-deep);color:#fff;}
+  .track-badge{font-size:0.78rem;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:4px 10px;white-space:nowrap;}
+  .track-badge b{color:var(--teal-deep);}
+
+  /* ---------- Layout ---------- */
+  main{max-width:1080px;margin:0 auto;padding:32px 22px 90px;}
+  .view{display:none;}
+  .view.active{display:block;animation:fade .3s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+
+  .lead{color:var(--muted);max-width:64ch;}
+  .section-eyebrow{color:var(--teal-deep);font-weight:600;font-size:0.85rem;margin-bottom:4px;}
+  h2.title{font-size:1.7rem;margin-bottom:6px;}
+
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:22px 24px;margin-bottom:18px;}
+  .card.accent{border-left:4px solid var(--teal);}
+  .card.amber{border-left:4px solid var(--amber);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+
+  .chip{display:inline-block;background:var(--teal-soft);color:var(--teal-deep);padding:5px 11px;border-radius:999px;font-size:0.82rem;margin:3px 4px 3px 0;}
+  .chip.amber{background:var(--amber-soft);color:var(--amber);}
+  .chip.rose{background:var(--rose-soft);color:#5c2626;}
+
+  .callout{padding:13px 17px;border-radius:8px;margin:12px 0;font-size:0.93rem;}
+  .callout.tip{background:var(--teal-soft);border-left:4px solid var(--teal);}
+  .callout.warn{background:var(--rose-soft);border-left:4px solid var(--rose);color:#5c2626;}
+
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:0.9rem;}
+  th{background:var(--teal-soft);color:var(--teal-deep);text-align:left;padding:8px 10px;font-weight:600;}
+  td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
+  td.term{font-family:'IBM Plex Mono',monospace;font-weight:600;white-space:nowrap;}
+
+  /* ---------- Home ---------- */
+  .hero{background:linear-gradient(135deg,#0A4F47,#0D6E63);color:#fff;border-radius:16px;padding:40px 38px;margin-bottom:22px;}
+  .hero h1{color:#fff;font-size:2.4rem;margin-bottom:10px;}
+  .hero p{color:#D6EBE7;max-width:60ch;margin:0 0 22px;}
+  .track-pick{display:flex;gap:12px;flex-wrap:wrap;}
+  .track-opt{flex:1;min-width:200px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.25);border-radius:10px;padding:16px 18px;color:#fff;text-align:left;transition:all .15s;}
+  .track-opt:hover{background:rgba(255,255,255,0.16);}
+  .track-opt.selected{background:#fff;color:var(--ink);border-color:#fff;}
+  .track-opt strong{display:block;font-size:1.05rem;font-family:'Source Serif 4',serif;margin-bottom:3px;}
+  .track-opt small{font-size:0.83rem;opacity:0.85;}
+  .track-opt.selected small{color:var(--muted);opacity:1;}
+
+  .home-tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;}
+  .tile{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:20px;text-align:left;transition:all .15s;}
+  .tile:hover{border-color:var(--teal);transform:translateY(-2px);box-shadow:0 6px 18px rgba(13,110,99,0.08);}
+  .tile h3{font-size:1.1rem;}
+  .tile p{color:var(--muted);font-size:0.88rem;margin:4px 0 0;}
+  .tile .icon{font-size:1.4rem;margin-bottom:8px;display:block;}
+
+  .stat-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:20px;}
+  .stat{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px 18px;flex:1;min-width:130px;}
+  .stat b{font-family:'Source Serif 4',serif;font-size:1.6rem;color:var(--teal-deep);display:block;}
+  .stat small{color:var(--muted);font-size:0.8rem;}
+
+  /* ---------- Explore ---------- */
+  .explore-wrap{display:grid;grid-template-columns:260px 1fr;gap:18px;}
+  .spine{display:flex;flex-direction:column;gap:6px;}
+  .spine button{text-align:left;background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:11px 14px;color:var(--ink);font-size:0.92rem;position:relative;}
+  .spine button:hover{border-color:var(--teal);}
+  .spine button.active{background:var(--teal-deep);color:#fff;border-color:var(--teal-deep);}
+  .spine .arrow{color:var(--line);text-align:center;font-size:0.8rem;line-height:1;}
+  .node-detail{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:24px 26px;min-height:320px;}
+  .node-detail h3{font-size:1.4rem;color:var(--teal-deep);}
+  .node-detail .kicker{color:var(--amber);font-weight:600;font-size:0.82rem;margin-bottom:2px;}
+  .detail-block{margin-top:16px;}
+  .detail-block h4{font-size:0.82rem;color:var(--muted);font-family:'IBM Plex Sans',sans-serif;font-weight:600;margin-bottom:6px;}
+
+  /* ---------- Learn ---------- */
+  details.learn{background:var(--paper);border:1px solid var(--line);border-radius:10px;margin-bottom:10px;overflow:hidden;}
+  details.learn>summary{cursor:pointer;padding:15px 20px;font-family:'Source Serif 4',serif;font-weight:600;font-size:1.08rem;list-style:none;display:flex;align-items:center;gap:10px;}
+  details.learn>summary::-webkit-details-marker{display:none;}
+  details.learn>summary .tag{margin-left:auto;font-size:0.72rem;font-family:'IBM Plex Sans',sans-serif;font-weight:500;background:var(--amber-soft);color:var(--amber);padding:3px 9px;border-radius:999px;}
+  details.learn>summary::before{content:"▸";color:var(--teal);transition:transform .15s;}
+  details.learn[open]>summary::before{transform:rotate(90deg);}
+  .learn-body{padding:2px 20px 20px;}
+  .flow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:12px 0;}
+  .flow .n{background:var(--teal-soft);color:var(--teal-deep);padding:6px 12px;border-radius:8px;font-size:0.85rem;}
+  .flow .n.amber{background:var(--amber-soft);color:var(--amber);}
+  .flow .a{color:var(--muted);}
+  .mini{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:13px 16px;}
+  .mini h4{font-size:0.98rem;font-family:'Source Serif 4',serif;margin-bottom:4px;}
+
+  /* ---------- Drill ---------- */
+  .sub-nav{display:flex;gap:8px;margin-bottom:18px;}
+  .sub-nav button{background:var(--paper);border:1px solid var(--line);border-radius:999px;padding:7px 16px;color:var(--muted);font-size:0.88rem;font-weight:500;}
+  .sub-nav button.active{background:var(--teal-deep);color:#fff;border-color:var(--teal-deep);}
+
+  .flashcard{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:44px 30px;text-align:center;min-height:230px;display:flex;flex-direction:column;justify-content:center;cursor:pointer;user-select:none;position:relative;}
+  .flashcard .face-front{font-family:'Source Serif 4',serif;font-size:1.9rem;color:var(--teal-deep);}
+  .flashcard .face-hint{color:var(--muted);font-size:0.85rem;margin-top:14px;}
+  .flashcard .face-back{font-size:1.05rem;color:var(--ink);line-height:1.6;}
+  .flashcard .counter{position:absolute;top:14px;left:18px;font-family:'IBM Plex Mono',monospace;font-size:0.78rem;color:var(--muted);}
+  .fc-controls{display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap;}
+  .btn{border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:9px 16px;font-size:0.88rem;font-weight:500;color:var(--ink);}
+  .btn:hover{border-color:var(--teal);color:var(--teal-deep);}
+  .btn.primary{background:var(--teal-deep);color:#fff;border-color:var(--teal-deep);}
+  .btn.primary:hover{background:var(--teal);color:#fff;}
+  .btn.review{background:var(--amber-soft);border-color:var(--amber-line);color:var(--amber);}
+  .btn.known{background:var(--green-soft);border-color:#bfe0cc;color:var(--green);}
+
+  .quiz-q{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:26px 28px;}
+  .quiz-q .qnum{font-family:'IBM Plex Mono',monospace;color:var(--teal);font-size:0.82rem;}
+  .quiz-q h3{font-size:1.25rem;margin:6px 0 18px;}
+  .opt{display:block;width:100%;text-align:left;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:13px 16px;margin-bottom:10px;font-size:0.95rem;color:var(--ink);transition:all .12s;}
+  .opt:hover{border-color:var(--teal);}
+  .opt.correct{background:var(--green-soft);border-color:#8fc9a5;color:var(--green);font-weight:500;}
+  .opt.wrong{background:var(--rose-soft);border-color:var(--rose-line);color:#5c2626;}
+  .opt:disabled{cursor:default;}
+  .explain{margin-top:6px;padding:13px 16px;background:var(--teal-soft);border-radius:9px;font-size:0.9rem;}
+  .quiz-progress{height:6px;background:var(--line);border-radius:999px;overflow:hidden;margin-bottom:18px;}
+  .quiz-progress i{display:block;height:100%;background:var(--teal);transition:width .3s;}
+
+  /* ---------- Simulate ---------- */
+  .sim-lanes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0;}
+  .lane{background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:14px;text-align:left;font-size:0.9rem;transition:all .12s;}
+  .lane:hover{border-color:var(--teal);}
+  .lane b{display:block;color:var(--teal-deep);margin-bottom:3px;}
+  .lane.checked{opacity:0.55;}
+  .lane.culprit{background:var(--rose-soft);border-color:var(--rose);color:#5c2626;opacity:1;}
+  .lane.culprit b{color:var(--rose);}
+  .lane .finding{font-size:0.82rem;color:var(--muted);margin-top:6px;display:none;}
+  .lane.checked .finding{display:block;}
+
+  .funnel{display:flex;flex-direction:column;gap:5px;margin:18px 0;}
+  .funnel-stage{margin:0 auto;background:var(--teal);color:#fff;padding:9px 14px;border-radius:6px;text-align:center;font-size:0.85rem;transition:width .4s,background .3s;white-space:nowrap;overflow:hidden;}
+  .funnel-stage small{opacity:0.85;font-size:0.75rem;}
+  .toggle-row{display:flex;align-items:center;gap:10px;margin:10px 0;}
+  .switch{position:relative;width:46px;height:26px;background:var(--line);border-radius:999px;border:none;transition:background .2s;flex-shrink:0;}
+  .switch.on{background:var(--rose);}
+  .switch i{position:absolute;top:3px;left:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:left .2s;}
+  .switch.on i{left:23px;}
+
+  .gr-records{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0;}
+  .gr-rec{background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:14px;font-size:0.85rem;}
+  .gr-rec .src{font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--amber);margin-bottom:6px;}
+
+  /* ---------- Glossary ---------- */
+  .search{width:100%;padding:13px 16px;border:1px solid var(--line);border-radius:10px;font-size:0.95rem;font-family:inherit;margin-bottom:16px;}
+  .search:focus{outline:2px solid var(--teal-soft);border-color:var(--teal);}
+  .gloss-item{background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:13px 17px;margin-bottom:8px;}
+  .gloss-item b{color:var(--teal-deep);font-family:'IBM Plex Mono',monospace;}
+  .gloss-item span{color:var(--ink);}
+
+  footer{max-width:1080px;margin:0 auto;padding:26px 22px 50px;border-top:1px solid var(--line);color:var(--muted);font-size:0.85rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+  footer a{color:var(--teal-deep);}
+
+  @media (max-width:820px){
+    .grid2,.grid3,.sim-lanes,.gr-records{grid-template-columns:1fr;}
+    .explore-wrap{grid-template-columns:1fr;}
+    .hero{padding:30px 24px;}
+    .hero h1{font-size:1.9rem;}
+    .nav button{padding:6px 9px;font-size:0.84rem;}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">Pharma Analytics <span>Field Guide</span></div>
+    <nav class="nav" id="nav">
+      <button data-view="home" class="active">Home</button>
+      <button data-view="explore">Explore</button>
+      <button data-view="learn">Learn</button>
+      <button data-view="drill">Drill</button>
+      <button data-view="simulate">Simulate</button>
+      <button data-view="glossary">Glossary</button>
+    </nav>
+    <div class="track-badge">Track: <b id="trackLabel">Mid-level</b></div>
+  </div>
+</div>
+
+<main>
+
+  <!-- ================= HOME ================= -->
+  <section class="view active" id="view-home">
+    <div class="hero">
+      <h1>The Pharma Analytics Field Guide</h1>
+      <p>An interactive walk through the vocabulary, KPIs, data sources, and architecture behind pharma commercial &amp; data analytics. Pick your track, and the guide reorders itself, hides what you don't need, and dials the explanation up or down to match.</p>
+      <div class="track-pick" id="trackPick">
+        <button class="track-opt" data-track="fresher"><strong>Fresher</strong><small>New to pharma. Full explanations, more scaffolding.</small></button>
+        <button class="track-opt selected" data-track="mid"><strong>Mid-level analyst</strong><small>Know the basics. Focus on depth and nuance.</small></button>
+        <button class="track-opt" data-track="refresher"><strong>Refresher</strong><small>Been here before. Dense, fast, jump to drills.</small></button>
+      </div>
+    </div>
+
+    <div class="callout tip" id="trackPath" style="margin-bottom:16px;"></div>
+
+    <div class="home-tiles" id="homeTiles">
+      <button class="tile" data-goto="explore"><span class="icon">🗺️</span><h3>Explore</h3><p>Click through the commercial ecosystem, node by node.</p></button>
+      <button class="tile" data-goto="learn"><span class="icon">📘</span><h3>Learn</h3><p>The full reference: acronyms, KPIs, access, architecture.</p></button>
+      <button class="tile" data-goto="drill"><span class="icon">🎴</span><h3>Drill</h3><p>Flashcards and a scored quiz to test recall.</p></button>
+      <button class="tile" data-goto="simulate"><span class="icon">🧪</span><h3>Simulate</h3><p>Diagnose a sales drop, run the patient funnel, match records.</p></button>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat"><b id="statKnown">0</b><small>terms marked known</small></div>
+      <div class="stat"><b id="statQuiz">n/a</b><small>best quiz score</small></div>
+      <div class="stat"><b>20</b><small>core concepts</small></div>
+      <div class="stat"><b>3</b><small>simulations</small></div>
+    </div>
+  </section>
+
+  <!-- ================= EXPLORE ================= -->
+  <section class="view" id="view-explore">
+    <div class="section-eyebrow">Explore</div>
+    <h2 class="title">The commercial ecosystem</h2>
+    <p class="lead">Your job in analytics is usually to understand where performance is changing and why. Click any point in the chain to see what happens there, the data it produces, and the metrics that live at that layer.</p>
+    <div class="explore-wrap" style="margin-top:18px;">
+      <div class="spine" id="spine"></div>
+      <div class="node-detail" id="nodeDetail"></div>
+    </div>
+  </section>
+
+  <!-- ================= LEARN ================= -->
+  <section class="view" id="view-learn">
+    <div class="section-eyebrow">Learn</div>
+    <h2 class="title">Reference</h2>
+    <p class="lead" id="learnIntro"></p>
+    <div id="learnContent" style="margin-top:18px;"></div>
+  </section>
+
+  <!-- ================= DRILL ================= -->
+  <section class="view" id="view-drill">
+    <div class="section-eyebrow">Drill</div>
+    <h2 class="title">Test your recall</h2>
+    <div class="sub-nav" style="margin-top:14px;">
+      <button id="tabFlash" class="active">Flashcards</button>
+      <button id="tabQuiz">Quiz</button>
+    </div>
+
+    <div id="flashPane">
+      <div class="flashcard" id="flashcard">
+        <div class="counter" id="fcCounter"></div>
+        <div id="fcContent"></div>
+      </div>
+      <div class="fc-controls">
+        <button class="btn review" id="fcReview">Still learning</button>
+        <button class="btn known" id="fcKnown">I know this ✓</button>
+      </div>
+      <div class="fc-controls">
+        <button class="btn" id="fcPrev">← Back</button>
+        <button class="btn" id="fcShuffle">Shuffle</button>
+        <button class="btn" id="fcNext">Next →</button>
+      </div>
+    </div>
+
+    <div id="quizPane" class="hide">
+      <div class="quiz-progress"><i id="quizBar" style="width:0%"></i></div>
+      <div id="quizArea"></div>
+    </div>
+  </section>
+
+  <!-- ================= SIMULATE ================= -->
+  <section class="view" id="view-simulate">
+    <div class="section-eyebrow">Simulate</div>
+    <h2 class="title">Work the problem</h2>
+    <div class="sub-nav" style="margin-top:14px;flex-wrap:wrap;">
+      <button id="simTab1" class="active">Diagnostic console</button>
+      <button id="simTab2">Patient journey funnel</button>
+      <button id="simTab3">Golden record</button>
+    </div>
+
+    <!-- Sim 1: Diagnostic -->
+    <div id="sim1">
+      <div class="card accent">
+        <h3 id="simScenario" style="font-size:1.2rem;"></h3>
+        <p class="lead" style="font-size:0.92rem;">You're the analyst. Investigate each lane to gather findings, then click the lane you believe is the root cause.</p>
+        <div class="sim-lanes" id="diagLanes"></div>
+        <div id="diagVerdict"></div>
+        <button class="btn primary" id="diagNew" style="margin-top:10px;">New scenario</button>
+      </div>
+    </div>
+
+    <!-- Sim 2: Funnel -->
+    <div id="sim2" class="hide">
+      <div class="card accent">
+        <h3 style="font-size:1.2rem;">Where do patients drop off?</h3>
+        <p class="lead" style="font-size:0.92rem;">Start with 10,000 diagnosed patients. Watch how many actually stay on therapy, and what prior authorization does to the picture.</p>
+        <div class="toggle-row">
+          <button class="switch" id="paSwitch" aria-label="Toggle prior authorization"><i></i></button>
+          <span id="paLabel">Prior authorization: <b>off</b></span>
+        </div>
+        <div class="funnel" id="funnel"></div>
+        <div class="callout tip" id="funnelNote"></div>
+      </div>
+    </div>
+
+    <!-- Sim 3: Golden record -->
+    <div id="sim3" class="hide">
+      <div class="card accent">
+        <h3 style="font-size:1.2rem;">Same HCP, or not?</h3>
+        <p class="lead" style="font-size:0.92rem;">These records arrived from different source systems. Decide whether they resolve to one golden record. This is master data management in miniature.</p>
+        <div class="gr-records" id="grRecords"></div>
+        <div class="fc-controls" style="justify-content:flex-start;">
+          <button class="btn known" id="grSame">Same HCP</button>
+          <button class="btn review" id="grDiff">Different HCPs</button>
+        </div>
+        <div id="grVerdict"></div>
+        <button class="btn primary" id="grNext" style="margin-top:10px;" >Next case</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= GLOSSARY ================= -->
+  <section class="view" id="view-glossary">
+    <div class="section-eyebrow">Glossary</div>
+    <h2 class="title">Quick lookup</h2>
+    <input class="search" id="glossSearch" placeholder="Search terms, e.g. NBRx, formulary, MDM…">
+    <div id="glossList"></div>
+  </section>
+
+</main>
+
+<footer>
+  <div>Built as an open learning resource for pharma data &amp; analytics.</div>
+  <div id="footerAttr"></div>
+</footer>
+
+<script>
+/* ============ persistence (safe in preview) ============ */
+const store = {
+  get(k,d){ try{ const v=localStorage.getItem(k); return v===null?d:JSON.parse(v);}catch(e){return d;} },
+  set(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+};
+
+/* ============ track ============ */
+let track = store.get('paf_track','mid');
+const trackLabels={fresher:'Fresher',mid:'Mid-level',refresher:'Refresher'};
+function applyTrack(t){
+  track=t; store.set('paf_track',t);
+  document.body.dataset.track=t;
+  document.getElementById('trackLabel').textContent=trackLabels[t];
+  document.querySelectorAll('#trackPick .track-opt').forEach(b=>b.classList.toggle('selected',b.dataset.track===t));
+  renderLearn(t);
+  document.getElementById('learnIntro').textContent=trackViews[t].intro;
+  document.getElementById('trackPath').innerHTML=trackViews[t].path;
+}
+document.getElementById('trackPick').addEventListener('click',e=>{
+  const b=e.target.closest('.track-opt'); if(b) applyTrack(b.dataset.track);
+});
+
+/* ============ view routing ============ */
+function show(view){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('active',b.dataset.view===view));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.getElementById('nav').addEventListener('click',e=>{ if(e.target.dataset.view) show(e.target.dataset.view); });
+document.querySelectorAll('[data-goto]').forEach(b=>b.addEventListener('click',()=>show(b.dataset.goto)));
+
+/* ============ EXPLORE data ============ */
+const nodes=[
+  {name:'Pharma company',kicker:'The manufacturer',what:'Develops, manufactures, and commercializes the drug. Sets brand strategy, pricing, and the analytics questions everyone below is trying to answer.',data:['ERP / financials','Supply &amp; inventory','Corporate hierarchies'],metrics:['Revenue','Units','Gross-to-net']},
+  {name:'Brand / product',kicker:'What you sell',what:'A specific drug positioned for a specific patient population and competitive set. Most commercial analytics rolls up to brand performance.',data:['Product master','NDC codes','Competitive set'],metrics:['Market share','Growth','TRx / NBRx']},
+  {name:'Sales team',kicker:'Field force',what:'Reps engage HCPs through calls, samples, and details. This is the lever the company most directly controls, so measuring its effectiveness is central.',data:['Veeva CRM','Call &amp; sample logs','Territory alignments'],metrics:['Reach','Frequency','Target attainment']},
+  {name:'HCP / physician',kicker:'The prescriber',what:'Healthcare professionals write the prescriptions. Understanding which HCPs are changing behavior, and why, is the heart of commercial analytics.',data:['NPI registry','Xponent (Rx by HCP)','Segmentation tiers'],metrics:['HCP-level TRx','Prescribing trend','Decile / tier']},
+  {name:'Patient',kicker:'The person on therapy',what:'The ultimate outcome. A prescription written is not the same as a patient actually starting and staying on therapy.',data:['Anonymized patient tokens','Longitudinal claims','Patient services'],metrics:['Patient starts','Persistence','Adherence']},
+  {name:'Prescription',kicker:'The Rx event',what:'The order itself. Distinguish new, new-to-brand, and total prescriptions; they answer different questions about growth vs. maintenance.',data:['Rx feeds','Switch / refill data'],metrics:['NRx','NBRx','TRx']},
+  {name:'Pharmacy',kicker:'Dispensing point',what:'Retail or specialty pharmacies dispense the drug. Specialty handles complex, high-cost therapies and often coordinates access and support.',data:['Dispensing data','Specialty pharmacy feeds'],metrics:['Fill rate','Abandonment','Time to fill']},
+  {name:'Payer / PBM',kicker:'Who pays &amp; gatekeeps',what:'Payers cover the cost; PBMs sit between manufacturer and plan and shape which drugs are covered and on what terms. This layer can make or break access.',data:['Formulary status','Plan coverage','Rebate contracts'],metrics:['Covered lives','Tier placement','PA / step rate']},
+  {name:'Claims + reimbursement',kicker:'The paper trail',what:'A claim confirms healthcare activity occurred. Stitched together, claims reconstruct the patient journey from diagnosis to discontinuation.',data:['Medical claims','Pharmacy claims','Remittance'],metrics:['Approved vs. rejected','Reimbursement','Journey drop-off']}
+];
+const spine=document.getElementById('spine');
+nodes.forEach((n,i)=>{
+  const b=document.createElement('button'); b.textContent=n.name; b.dataset.i=i;
+  b.addEventListener('click',()=>selectNode(i));
+  spine.appendChild(b);
+  if(i<nodes.length-1){ const a=document.createElement('div'); a.className='arrow'; a.textContent='↓'; spine.appendChild(a); }
+});
+function selectNode(i){
+  document.querySelectorAll('#spine button').forEach(b=>b.classList.toggle('active',+b.dataset.i===i));
+  const n=nodes[i];
+  document.getElementById('nodeDetail').innerHTML=
+    `<div class="kicker">${n.kicker}</div><h3>${n.name}</h3><p style="color:var(--muted)">${n.what}</p>
+     <div class="detail-block"><h4>Data generated here</h4>${n.data.map(d=>`<span class="chip">${d}</span>`).join('')}</div>
+     <div class="detail-block"><h4>Metrics that live here</h4>${n.metrics.map(m=>`<span class="chip amber">${m}</span>`).join('')}</div>`;
+}
+selectNode(0);
+
+/* ============ LEARN content ============ */
+const learn=[
+ {t:'Must-know acronyms',level:'basic',tag:'core',html:`
+   <table><tr><th>Term</th><th>Meaning</th><th>Why it matters</th></tr>
+   <tr><td class="term">HCP</td><td>Healthcare Professional</td><td>The prescriber</td></tr>
+   <tr><td class="term">HCO</td><td>Healthcare Organization</td><td>Hospital, clinic, system</td></tr>
+   <tr><td class="term">NPI</td><td>National Provider Identifier</td><td>Unique provider ID across systems</td></tr>
+   <tr><td class="term">TRx</td><td>Total Prescriptions</td><td>Overall Rx volume</td></tr>
+   <tr><td class="term">NRx</td><td>New Prescriptions</td><td>Newly written Rx</td></tr>
+   <tr><td class="term">NBRx</td><td>New-to-Brand Rx</td><td>Patients newly starting your brand</td></tr>
+   <tr><td class="term">ICD-10</td><td>Diagnosis codes</td><td>Identifies the condition</td></tr>
+   <tr><td class="term">CPT</td><td>Procedure codes</td><td>Medical services / procedures</td></tr>
+   <tr><td class="term">NDC</td><td>National Drug Code</td><td>Identifies the drug / product</td></tr>
+   <tr><td class="term">PHI / PII</td><td>Protected / Personal Info</td><td>Regulated identifiable data</td></tr></table>
+   <p class="fresher-hint">the two you'll hear most are TRx and NBRx. TRx is every prescription filled (including refills); NBRx is a patient starting your brand for the first time. Growth stories live in NBRx.</p>`},
+ {t:'Core commercial KPIs',level:'basic',tag:'core',html:`
+   <div class="flow"><span class="n">TRx = total Rx</span><span class="n">NRx = new Rx</span><span class="n">NBRx = new patients on your brand</span></div>
+   <div class="grid2" style="margin-top:10px;">
+     <div class="mini"><h4>Market share</h4><p class="mono">Brand sales ÷ Total market sales</p><p style="font-size:0.85rem;color:var(--muted)">Market 100k Rx, your brand 20k → 20% share.</p></div>
+     <div class="mini"><h4>Growth</h4><p class="mono">(Current − Previous) ÷ Previous</p><p style="font-size:0.85rem;color:var(--muted)">Standard period-over-period change.</p></div>
+   </div>
+   <p style="margin-top:10px;">Also know:</p>
+   <div>${['Patient starts','Persistence','Adherence','Discontinuation','Territory attainment','Competitor share','Units','Access / coverage'].map(x=>`<span class="chip">${x}</span>`).join('')}</div>
+   <p class="fresher-hint">"share" always needs a denominator. 20,000 prescriptions means nothing until you know the market is 100,000. Whenever someone quotes a number, ask "out of what?"</p>`},
+ {t:'The "sales dropped 10%" framework',level:'core',tag:'interview',html:`
+   <p>A strong Sr.-level answer walks these nine lanes in order rather than guessing:</p>
+   <ol><li><b>Market</b>: is the whole category shrinking?</li><li><b>Product</b>: is our brand specifically declining?</li><li><b>Geography</b>: which territories?</li><li><b>HCP</b>: which prescribers changed?</li><li><b>Patient</b>: are starts declining?</li><li><b>Access</b>: did formulary / payer terms change?</li><li><b>Sales force</b>: did engagement change?</li><li><b>Competition</b>: did a rival launch or gain?</li><li><b>Data</b>: could this be a reporting / quality issue?</li></ol>
+   <div class="callout tip">Try this live in <b>Simulate → Diagnostic console</b>.</div>`},
+ {t:'Pharma data sources',level:'core',tag:'core',html:`
+   <div class="grid2">
+     <div class="mini"><h4>IQVIA</h4><p style="font-size:0.88rem">Prescription + sales + market performance.</p><div>${['Xponent','DDD','NPA'].map(x=>`<span class="chip">${x}</span>`).join('')}</div></div>
+     <div class="mini"><h4>Claims</h4><p style="font-size:0.88rem"><b>Medical:</b> diagnosis, procedure, provider.<br><b>Pharmacy:</b> drug, Rx, pharmacy, payer.</p></div>
+   </div>
+   <p style="margin-top:10px;">Claims stitch into the journey:</p>
+   <div class="flow"><span class="n">Diagnosis</span><span class="a">→</span><span class="n">Treatment</span><span class="a">→</span><span class="n">Rx</span><span class="a">→</span><span class="n">Refill</span><span class="a">→</span><span class="n">Switch / stop</span></div>
+   <p class="fresher-hint">the simplest way to hold these apart: prescription data tells you <em>what was prescribed</em>, claims data tells you <em>what was billed and paid for</em>. The two rarely match perfectly, and the gaps are often the interesting part.</p>`},
+ {t:'IQVIA vs. Symphony vs. Komodo',level:'advanced',tag:'enrichment',html:`
+   <p>Three names that come up constantly. They overlap, but each has a center of gravity:</p>
+   <table><tr><th>Provider</th><th>Strongest for</th><th>Think of it as</th></tr>
+   <tr><td class="term">IQVIA</td><td>Rx &amp; sales, market measurement, projections (Xponent, DDD, NPA)</td><td>The market-measurement standard</td></tr>
+   <tr><td class="term">Symphony Health</td><td>Integrated medical + pharmacy claims, patient-level analytics</td><td>Claims-first alternative to IQVIA</td></tr>
+   <tr><td class="term">Komodo Health</td><td>Longitudinal patient journeys, real-world evidence at scale</td><td>The patient-journey / RWE specialist</td></tr></table>
+   <p class="fresher-hint">companies often license more than one of these and reconcile them, which is exactly why master data management matters. Think of them as overlapping maps of the same territory drawn by different surveyors.</p>`},
+ {t:'Projected vs. captured data',level:'advanced',tag:'enrichment',html:`
+   <p>One of the most misunderstood ideas in commercial analytics, and a fast way to sound senior.</p>
+   <div class="grid2">
+     <div class="mini"><h4>Captured</h4><p style="font-size:0.88rem">Actual observed transactions from the pharmacies or plans a vendor sees. Real, but incomplete; no single source sees 100% of the market.</p></div>
+     <div class="mini"><h4>Projected</h4><p style="font-size:0.88rem">The vendor scales captured data up to a full-market estimate using statistical models and known coverage factors.</p></div>
+   </div>
+   <div class="flow" style="margin-top:12px;"><span class="n">Sample captured</span><span class="a">→</span><span class="n">Coverage / weighting</span><span class="a">→</span><span class="n amber">Projected market view</span></div>
+   <div class="callout warn"><b>Watch for suppression &amp; small cells.</b> When counts are tiny, vendors may suppress or floor values to protect privacy or accuracy. If a projection <em>methodology</em> changes, trends can shift for reasons that have nothing to do with the market. Always ask: is this captured or projected, and did the method change between periods?</div>`},
+ {t:'Data cadence &amp; latency',level:'advanced',tag:'enrichment',html:`
+   <p>Knowing <em>when</em> data lands is as important as what it says. Mismatched cadence is a top cause of "why don't these two reports agree?"</p>
+   <table><tr><th>Data</th><th>Typical cadence</th><th>Practical latency</th></tr>
+   <tr><td class="term">Rx / sales feeds</td><td>Weekly (often)</td><td>Days: near real-time signal</td></tr>
+   <tr><td class="term">Pharmacy claims</td><td>Monthly-ish</td><td>Weeks: settlement &amp; adjudication lag</td></tr>
+   <tr><td class="term">Medical claims</td><td>Monthly / quarterly</td><td>1–3+ months: the slowest to mature</td></tr>
+   <tr><td class="term">CRM (Veeva)</td><td>Continuous</td><td>Same-day rep activity</td></tr></table>
+   <div class="callout tip">Claims "restate" as more of a period matures. Comparing a fresh month to a settled one is comparing an incomplete number to a complete one.</div>`},
+ {t:'Market access: payer, PBM, formulary',level:'core',tag:'core',html:`
+   <p><b>Payer</b> pays for care (commercial, Medicare, Medicaid). <b>PBM</b> sits between manufacturer and plan and shapes coverage.</p>
+   <div class="flow"><span class="n">Manufacturer</span><span class="a">→</span><span class="n">PBM</span><span class="a">→</span><span class="n">Plan</span><span class="a">→</span><span class="n">Pharmacy</span><span class="a">→</span><span class="n">Patient</span></div>
+   <p><b>Formulary tiers:</b></p>
+   <div>${['Tier 1: lowest cost','Tier 2','Tier 3','Specialty: expensive'].map((x,i)=>`<span class="chip${i===3?' amber':''}">${x}</span>`).join('')}</div>
+   <p style="margin-top:10px;"><b>Prior authorization &amp; step therapy</b> gate access:</p>
+   <div class="flow"><span class="n">Prescribed</span><span class="a">→</span><span class="n">PA required</span><span class="a">→</span><span class="n">Delay / reject</span><span class="a">→</span><span class="n amber">May never start</span></div>
+   <div class="callout tip">A prescription is not a patient on therapy. Access is where intent turns into reality, or doesn't.</div>
+   <p class="fresher-hint">a PBM is not the insurer. It's a middle layer that negotiates drug coverage and rebates on the plan's behalf. When a drug's numbers move for no clinical reason, a formulary or PBM change is one of the first things to check.</p>`},
+ {t:'Veeva CRM &amp; sales force effectiveness',level:'core',tag:'core',html:`
+   <p>Veeva is the CRM system of record for field engagement. Typical data:</p>
+   <div>${['HCP','HCO','Rep','Territory','Call','Email','Sample','Detail'].map(x=>`<span class="chip">${x}</span>`).join('')}</div>
+   <p style="margin-top:10px;"><b>SFE asks:</b> are reps reaching the right HCPs, at the right frequency, and does engagement move prescribing?</p>
+   <div class="flow"><span class="n">Veeva</span><span class="a">→</span><span class="n">ETL</span><span class="a">→</span><span class="n">Warehouse</span><span class="a">→</span><span class="n">SQL</span><span class="a">→</span><span class="n">Power BI / Tableau</span></div>`},
+ {t:'HCP segmentation',level:'core',tag:'core',html:`
+   <p>Not every physician matters equally. Tiering focuses field effort:</p>
+   <div>${['Tier A: high potential','Tier B: medium','Tier C: low'].map(x=>`<span class="chip">${x}</span>`).join('')}</div>
+   <p style="margin-top:8px;">Built from Rx volume, patient population, specialty, growth potential, adoption, and geography.</p>`},
+ {t:'Data architecture, ETL/ELT &amp; star schema',level:'core',tag:'core',html:`
+   <div class="flow"><span class="n">Veeva · Claims · IQVIA · ERP</span><span class="a">→</span><span class="n">ETL / ELT</span><span class="a">→</span><span class="n">Warehouse</span><span class="a">→</span><span class="n">Models</span><span class="a">→</span><span class="n">BI</span></div>
+   <div class="grid2" style="margin-top:10px;">
+     <div class="mini"><h4>ETL</h4><p style="font-size:0.88rem">Extract → Transform → Load. Transform before loading.</p></div>
+     <div class="mini"><h4>ELT</h4><p style="font-size:0.88rem">Extract → Load → Transform. Common in cloud warehouses.</p></div>
+   </div>
+   <p style="margin-top:10px;"><b>Star schema:</b> one fact table (sales, Rx, revenue, units) surrounded by dimensions:</p>
+   <div>${['HCP','Product','Territory','Date','Payer'].map(x=>`<span class="chip amber">${x}</span>`).join('')}</div>
+   <p class="fresher-hint">picture a spreadsheet of transactions (the fact table) with lookup tables hanging off it for the who, what, where, and when (the dimensions). That shape is what makes a dashboard fast to slice.</p>`},
+ {t:'Master data management (MDM)',level:'core',tag:'core',html:`
+   <p>Are these the same prescriber?</p>
+   <div>${['Veeva: Dr. John Smith','Claims: Jonathan Smith MD','IQVIA: J Smith'].map(x=>`<span class="chip">${x}</span>`).join('')}</div>
+   <p style="margin-top:8px;">MDM resolves them to one <b>golden record</b>. Common master domains: HCP, HCO, product, territory, customer.</p>
+   <p class="fresher-hint">the reliable anchor for a person is the NPI, not the name. Names get abbreviated, misspelled, and reformatted across systems; the identifier is what lets you trust that two rows are the same doctor.</p>
+   <div class="callout tip">Try it in <b>Simulate → Golden record</b>.</div>`},
+ {t:'Data governance',level:'core',tag:'core',html:`
+   <p>At Manager level, governance is a set of questions you can always answer:</p>
+   <p>Who owns it? Who can access it? Where did it come from? Is it accurate? Can we trace transformations? Are sensitive fields protected?</p>
+   <div>${['Ownership','Quality','Lineage','Access control','Stewardship','Privacy','Retention'].map(x=>`<span class="chip">${x}</span>`).join('')}</div>`},
+ {t:'HIPAA &amp; healthcare privacy',level:'core',tag:'core',html:`
+   <div class="grid2">
+     <div class="mini"><h4>Identifiable patient data</h4><p style="font-size:0.88rem">Highly restricted.</p></div>
+     <div class="mini"><h4>De-identified / tokenized</h4><p style="font-size:0.88rem">Can be used for analytics under proper controls.</p></div>
+   </div>
+   <div class="callout warn"><b>Don't say:</b> "HIPAA means you can't analyze patient data." The real issue is how data is handled, identified, and authorized.</div>`},
+ {t:'Interview questions to be ready for',level:'core',tag:'interview',html:`
+   <p><b>"Design a commercial dashboard."</b> Start with the decision, not the visual:</p>
+   <div class="flow"><span class="n">Exec KPIs</span><span class="a">→</span><span class="n">Market/brand</span><span class="a">→</span><span class="n">Territory</span><span class="a">→</span><span class="n">HCP</span><span class="a">→</span><span class="n">Patient/access</span></div>
+   <p><b>"Combine CRM and claims."</b> Join on NPI, product, time, geography, then analyze whether engagement correlates with prescribing. <em>Don't claim causation.</em></p>
+   <p><b>"The business says the dashboard is wrong."</b> Understand the gap → align on definition → validate source → validate transforms → reconcile → root cause → document → prevent. <em>Don't defend first.</em></p>
+   <p><b>"How do you prioritize?"</b> <span class="mono">Impact × Urgency × Strategic value × Effort × Data availability</span></p>`},
+ {t:'The story recruiters should hear',level:'core',tag:'positioning',html:`
+   <div class="callout warn"><b>Don't lead with:</b> "Power BI + SQL + Tableau person."</div>
+   <div class="callout tip"><b>Lead with:</b> a data &amp; analytics leader who turns business needs into scalable analytics solutions, manages cross-functional stakeholders, and operates fluently in pharma/healthcare. The tools support the story.</div>`}
+];
+// stable keys, assigned in source order
+const learnKeys=['acronyms','kpis','framework','sources','providers','projected','cadence','access','veeva','segmentation','architecture','mdm','governance','hipaa','interview','positioning'];
+learn.forEach((s,i)=>s.key=learnKeys[i]);
+const learnByKey={}; learn.forEach(s=>learnByKey[s.key]=s);
+
+// per-track information architecture: [key, openByDefault]. Order = display order. Omitted keys are hidden.
+const trackViews={
+  fresher:{
+    intro:'Ordered as a learning path: foundations first, data plumbing next, the sales-drop framework as a capstone. Advanced market-data topics are hidden on this track; switch to Mid-level when you want them.',
+    path:'New here? Work top to bottom: <b>Learn</b>, then <b>Drill → Flashcards</b>, then try <b>Simulate → Patient journey funnel</b>.',
+    sections:[['acronyms',1],['kpis',1],['sources',1],['access',1],['veeva',1],['segmentation',1],['architecture',1],['mdm',1],['governance',1],['hipaa',1],['framework',1]]
+  },
+  mid:{
+    intro:'Leads with depth and market-data nuance. The basics are still here, parked at the bottom as quick reference.',
+    path:'Head straight for the nuance in <b>Learn</b>, then pressure-test yourself in <b>Drill → Quiz</b> and <b>Simulate → Diagnostic console</b>.',
+    sections:[['sources',1],['providers',1],['projected',1],['cadence',1],['access',1],['mdm',1],['architecture',1],['governance',1],['hipaa',1],['veeva',1],['segmentation',0],['framework',1],['interview',1],['positioning',0],['acronyms',0],['kpis',0]]
+  },
+  refresher:{
+    intro:'Dense and advanced-first. Foundational acronyms and KPIs are hidden entirely; interview and positioning material is surfaced up top.',
+    path:'Short on time? Skip ahead to <b>Drill → Quiz</b> and <b>Simulate</b>. The Learn tab is reordered advanced-first and interview-ready for you.',
+    sections:[['projected',1],['cadence',1],['providers',1],['framework',1],['interview',1],['positioning',1],['access',0],['mdm',0],['architecture',0],['governance',0],['hipaa',0],['sources',0],['veeva',0],['segmentation',0]]
+  }
+};
+const lc=document.getElementById('learnContent');
+function renderLearn(t){
+  lc.innerHTML='';
+  trackViews[t].sections.forEach(([key,open])=>{
+    const s=learnByKey[key]; if(!s) return;
+    const d=document.createElement('details'); d.className='learn'; d.open=!!open;
+    d.innerHTML=`<summary>${s.t}<span class="tag">${s.tag}</span></summary><div class="learn-body">${s.html}</div>`;
+    lc.appendChild(d);
+  });
+}
+
+/* ============ DRILL: flashcards ============ */
+const cards=[
+ ['TRx','Total prescriptions filled, the base volume metric for a drug.'],
+ ['NBRx','New-to-brand prescriptions, patients newly starting your drug specifically.'],
+ ['Market share','Brand sales ÷ total market sales, for a given category.'],
+ ['HCP','Healthcare professional, the prescriber (physician, NP, PA).'],
+ ['HCO','Healthcare organization: hospital, clinic, or health system.'],
+ ['NPI','National Provider Identifier, the prescriber\'s unique ID across systems.'],
+ ['Claims','A record that a medical or pharmacy service actually occurred.'],
+ ['ICD-10','Diagnosis code identifying the condition being treated.'],
+ ['NDC','National Drug Code, identifies the specific drug/product.'],
+ ['Patient journey','Symptom → diagnosis → therapy → persistence; analytics hunts for drop-off.'],
+ ['IQVIA','Major commercial data provider for Rx, sales, and market performance.'],
+ ['Veeva','The CRM system of record for HCP engagement and rep activity.'],
+ ['Payer','The organization paying for care: commercial insurer, Medicare, Medicaid.'],
+ ['PBM','Pharmacy Benefit Manager, shapes formulary coverage between manufacturer and plan.'],
+ ['Formulary','The list of drugs a plan covers, organized into cost tiers.'],
+ ['Prior authorization','Insurer approval required before coverage, a major drop-off point.'],
+ ['Specialty pharmacy','Handles distribution and support for costly, complex therapies.'],
+ ['HCP segmentation','Tiering prescribers (A/B/C) by potential and value to target engagement.'],
+ ['MDM','Master Data Management, one golden record per HCP/HCO/product across systems.'],
+ ['Data architecture','Sources → ETL/ELT → warehouse → models → BI → commercial teams.']
+];
+let known=store.get('paf_known',{}); // term -> true
+let fcOrder=cards.map((_,i)=>i); let fcIdx=0; let fcFlipped=false;
+const fc=document.getElementById('flashcard'), fcContent=document.getElementById('fcContent'), fcCounter=document.getElementById('fcCounter');
+function renderCard(){
+  const c=cards[fcOrder[fcIdx]]; fcFlipped=false;
+  fcCounter.textContent=`${fcIdx+1} / ${cards.length}` + (known[c[0]]?'  ·  known ✓':'');
+  fcContent.innerHTML=`<div class="face-front">${c[0]}</div><div class="face-hint">tap to reveal</div>`;
+}
+function flip(){
+  const c=cards[fcOrder[fcIdx]]; fcFlipped=!fcFlipped;
+  fcContent.innerHTML= fcFlipped ? `<div class="face-back">${c[1]}</div>` : `<div class="face-front">${c[0]}</div><div class="face-hint">tap to reveal</div>`;
+}
+fc.addEventListener('click',flip);
+document.getElementById('fcNext').addEventListener('click',()=>{fcIdx=(fcIdx+1)%cards.length;renderCard();});
+document.getElementById('fcPrev').addEventListener('click',()=>{fcIdx=(fcIdx-1+cards.length)%cards.length;renderCard();});
+document.getElementById('fcShuffle').addEventListener('click',()=>{fcOrder.sort(()=>Math.random()-0.5);fcIdx=0;renderCard();});
+document.getElementById('fcKnown').addEventListener('click',()=>{known[cards[fcOrder[fcIdx]][0]]=true;store.set('paf_known',known);updateStats();document.getElementById('fcNext').click();});
+document.getElementById('fcReview').addEventListener('click',()=>{delete known[cards[fcOrder[fcIdx]][0]];store.set('paf_known',known);updateStats();document.getElementById('fcNext').click();});
+renderCard();
+
+/* flashcard/quiz tabs */
+document.getElementById('tabFlash').addEventListener('click',()=>{togDrill(true);});
+document.getElementById('tabQuiz').addEventListener('click',()=>{togDrill(false);});
+function togDrill(flash){
+  document.getElementById('tabFlash').classList.toggle('active',flash);
+  document.getElementById('tabQuiz').classList.toggle('active',!flash);
+  document.getElementById('flashPane').classList.toggle('hide',!flash);
+  document.getElementById('quizPane').classList.toggle('hide',flash);
+  if(!flash) startQuiz();
+}
+
+/* ============ DRILL: quiz ============ */
+const quiz=[
+ {q:'A brand has high TRx but flat NBRx. What does that suggest?',o:['Strong new-patient acquisition','Growth is coming from refills, not new starts','The market is shrinking','A data-quality problem'],c:1,e:'TRx counts everything including refills; NBRx isolates new patients. Flat NBRx with high TRx means the base is refilling but few new patients are starting.'},
+ {q:'A prescription was written but the patient never started therapy. The most likely access culprit is:',o:['Low HCP segmentation tier','Prior authorization delay or rejection','A high NPI count','ELT instead of ETL'],c:1,e:'Prior authorization is a classic gate between an Rx being written and a patient actually starting; it can cause delay or outright rejection.'},
+ {q:'Veeva CRM is primarily a source of which kind of data?',o:['Pharmacy claims','HCP engagement and rep activity','Formulary tier placement','Manufacturing deviations'],c:1,e:'Veeva is the CRM system of record for calls, emails, samples, and details, i.e. field engagement, not claims or formulary data.'},
+ {q:'Three systems list "Dr. John Smith", "Jonathan Smith MD", and "J Smith". Resolving them to one entity is:',o:['ETL','Master data management','Prior authorization','HCP segmentation'],c:1,e:'Creating a single golden record from conflicting representations across systems is exactly what MDM does.'},
+ {q:'Why can two reports of the same metric disagree across data sources?',o:['One used SQL and one used Power BI','Different cadence/latency; claims restate as a period matures','Star schemas are always wrong','NBRx is not a real metric'],c:1,e:'Fresh months are incomplete; claims settle and restate over weeks. Comparing an immature period to a settled one is a top cause of mismatches.'},
+ {q:'"Projected" syndicated data means:',o:['Only the pharmacies the vendor directly observes','Captured data scaled to a full-market estimate via models','Future forecasts of sales','De-identified patient tokens'],c:1,e:'No vendor sees 100% of the market, so captured data is statistically projected up. A change in projection methodology can shift trends independent of the market.'},
+ {q:'The safest framing of HIPAA for an analyst is:',o:['You can never analyze patient data','It depends on how data is identified, handled, and authorized','Only IQVIA data is allowed','Tokenized data is always prohibited'],c:1,e:'De-identified/tokenized data can be used under appropriate controls. HIPAA governs handling and authorization, not analysis outright.'},
+ {q:'"Business says the dashboard is wrong." Your first move is to:',o:['Defend the dashboard\'s numbers','Understand the discrepancy and align on the metric definition','Rebuild the pipeline','Escalate to IT'],c:1,e:'Start by understanding the gap and agreeing on definitions before validating sources and transforms. Don\'t defend first.'},
+ {q:'In a star schema, "sales, Rx, revenue, units" belong in the:',o:['Dimension tables','Fact table','Formulary','CRM'],c:1,e:'Measurements live in the fact table; descriptive context (HCP, product, date) lives in the surrounding dimensions.'},
+ {q:'Which provider is best known for longitudinal patient journeys and real-world evidence?',o:['IQVIA','Komodo Health','Veeva','NetSuite'],c:1,e:'Komodo\'s center of gravity is longitudinal, patient-level data and RWE, versus IQVIA\'s market-measurement strength.'}
+];
+let qIdx=0, qScore=0, qAnswered=false;
+function startQuiz(){ qIdx=0; qScore=0; renderQuiz(); }
+function renderQuiz(){
+  qAnswered=false;
+  document.getElementById('quizBar').style.width=(qIdx/quiz.length*100)+'%';
+  if(qIdx>=quiz.length){ endQuiz(); return; }
+  const item=quiz[qIdx];
+  document.getElementById('quizArea').innerHTML=
+    `<div class="quiz-q"><div class="qnum">Question ${qIdx+1} of ${quiz.length}</div><h3>${item.q}</h3>
+     <div id="opts">${item.o.map((o,i)=>`<button class="opt" data-i="${i}">${o}</button>`).join('')}</div>
+     <div id="qExplain"></div></div>`;
+  document.querySelectorAll('#opts .opt').forEach(b=>b.addEventListener('click',()=>answer(+b.dataset.i)));
+}
+function answer(i){
+  if(qAnswered) return; qAnswered=true;
+  const item=quiz[qIdx];
+  document.querySelectorAll('#opts .opt').forEach((b,bi)=>{
+    b.disabled=true;
+    if(bi===item.c) b.classList.add('correct');
+    else if(bi===i) b.classList.add('wrong');
+  });
+  if(i===item.c) qScore++;
+  document.getElementById('qExplain').innerHTML=
+    `<div class="explain">${i===item.c?'<b>Correct.</b> ':'<b>Not quite.</b> '}${item.e}</div>
+     <button class="btn primary" id="qNext" style="margin-top:12px;">${qIdx===quiz.length-1?'See score':'Next question'}</button>`;
+  document.getElementById('qNext').addEventListener('click',()=>{qIdx++;renderQuiz();});
+}
+function endQuiz(){
+  document.getElementById('quizBar').style.width='100%';
+  const pct=Math.round(qScore/quiz.length*100);
+  const best=Math.max(store.get('paf_quizbest',0),pct); store.set('paf_quizbest',best); updateStats();
+  document.getElementById('quizArea').innerHTML=
+    `<div class="quiz-q" style="text-align:center;"><h3 style="font-size:1.6rem;">${qScore} / ${quiz.length}</h3>
+     <p class="lead" style="margin:0 auto 16px;">${pct>=80?'Sharp. You could hold your own in an interview.':pct>=50?'Solid base. Revisit the ones you missed in Learn.':'Good start. Run the flashcards, then come back.'}</p>
+     <p style="color:var(--muted);font-size:0.85rem;">Best score: ${best}%</p>
+     <button class="btn primary" id="qRetry">Try again</button></div>`;
+  document.getElementById('qRetry').addEventListener('click',startQuiz);
+}
+
+/* ============ SIMULATE 1: diagnostic ============ */
+const scenarios=[
+ {title:'Our brand sales dropped 10% last quarter. What happened?',culprit:4,
+  findings:['Overall category volume is flat; this is not a market-wide decline.','Our brand alone is down; competitors are steady.','The drop is concentrated in two regions, not nationwide.','A cluster of high-decile HCPs reduced prescribing.','A major payer moved us from Tier 2 to Tier 3, adding a prior-auth requirement.','New patient starts fell sharply right after the coverage change.','Rep call activity was actually up this quarter.','No competitor launched; competitor share is flat.','Data feeds reconciled cleanly against source, with no quality issue.'],
+  verdict:'Access. A payer tier change added prior authorization, patients stopped starting, and prescribing followed. Rep effort was fine; the market was fine. The cause was formulary access.'},
+ {title:'TRx looks healthy, but revenue is down 8%. Why?',culprit:8,
+  findings:['Category volume is up slightly, a healthy market.','Our TRx is actually flat to up.','No single region is collapsing.','HCP prescribing is stable across tiers.','Patient starts are steady.','Access is unchanged: same tiers, same PA rates.','Rep engagement is normal.','No competitor pricing war visible in share.','The current month is not fully settled; claims are restating and mix shifted toward lower-net channels.'],
+  verdict:'Data + timing. Volume is fine; the revenue gap is an immature, restating period plus a channel-mix shift. Reading a fresh month as if it were settled created a false alarm.'},
+ {title:'NBRx cratered in the Northeast. Root cause?',culprit:3,
+  findings:['National market is stable.','Brand TRx nationally is fine.','The decline is isolated to the Northeast region.','Two territories there went vacant; reps left and were not backfilled.','Patient starts dropped only where coverage was already thin, but broadly the pattern tracks the vacancies.','Access terms did not change in the region.','Rep activity in the affected territories fell to near zero.','No new competitor in the region.','Data reconciled cleanly.'],
+  verdict:'Sales force. Territory vacancies killed engagement in specific areas, and new-to-brand starts followed. A geography + field-force story, not access or market.'}
+];
+const laneNames=['Market','Product','Geography','HCP','Access','Patient','Sales force','Competition','Data'];
+let curScen=0, diagSolved=false;
+function loadScenario(idx){
+  curScen=idx; diagSolved=false;
+  const s=scenarios[idx];
+  document.getElementById('simScenario').textContent=s.title;
+  document.getElementById('diagVerdict').innerHTML='';
+  const wrap=document.getElementById('diagLanes'); wrap.innerHTML='';
+  laneNames.forEach((n,i)=>{
+    const b=document.createElement('button'); b.className='lane'; b.dataset.i=i;
+    b.innerHTML=`<b>${n}</b><span>Investigate →</span><div class="finding">${s.findings[i]}</div>`;
+    b.addEventListener('click',()=>diagClick(i,b));
+    wrap.appendChild(b);
+  });
+}
+function diagClick(i,b){
+  if(diagSolved) return;
+  if(!b.classList.contains('checked')){ b.classList.add('checked'); return; } // first click = investigate
+  // second click on an already-investigated lane = accuse
+  const s=scenarios[curScen];
+  diagSolved=true;
+  document.querySelectorAll('#diagLanes .lane').forEach(l=>l.classList.add('checked'));
+  const target=document.querySelector(`#diagLanes .lane[data-i="${s.culprit}"]`);
+  target.classList.add('culprit');
+  const right = (i===s.culprit);
+  document.getElementById('diagVerdict').innerHTML=
+    `<div class="callout ${right?'tip':'warn'}">${right?'<b>Nailed it.</b> ':'<b>Close. The root cause was '+laneNames[s.culprit]+'.</b> '}${s.verdict}</div>`;
+}
+document.getElementById('diagNew').addEventListener('click',()=>loadScenario((curScen+1)%scenarios.length));
+loadScenario(0);
+/* hint: clarify two-click interaction */
+document.getElementById('sim1').insertAdjacentHTML('afterbegin','<p class="lead" style="font-size:0.85rem;margin-bottom:10px;">Click a lane once to investigate it. Click an investigated lane again to accuse it as the root cause.</p>');
+
+/* ============ SIMULATE 2: funnel ============ */
+let paOn=false;
+const funnelStages=[
+ {label:'Diagnosed patients',base:10000,pa:10000},
+ {label:'Prescription written',base:7200,pa:7200},
+ {label:'Coverage / PA cleared',base:6800,pa:4900},
+ {label:'Patient starts therapy',base:6100,pa:4100},
+ {label:'Still on therapy at 6 months',base:3800,pa:2500}
+];
+function renderFunnel(){
+  const wrap=document.getElementById('funnel'); wrap.innerHTML='';
+  const top=10000;
+  funnelStages.forEach((s,i)=>{
+    const v = paOn ? s.pa : s.base;
+    const w = 40 + (v/top)*60; // 40%..100%
+    const el=document.createElement('div'); el.className='funnel-stage';
+    el.style.width=w+'%';
+    if(paOn && i>=2) el.style.background='var(--rose)';
+    el.innerHTML=`${s.label}<br><small>${v.toLocaleString()} patients</small>`;
+    wrap.appendChild(el);
+  });
+  const end = paOn?funnelStages[4].pa:funnelStages[4].base;
+  const pct=Math.round(end/top*100);
+  document.getElementById('funnelNote').innerHTML= paOn
+    ? `With prior authorization, only <b>${pct}%</b> of diagnosed patients are still on therapy at 6 months. The biggest single leak now sits at the coverage/PA step: access, not the prescriber, is the bottleneck.`
+    : `Even without an access barrier, only <b>${pct}%</b> of diagnosed patients remain on therapy at 6 months. Every step leaks. Toggle prior authorization to see access widen the gap.`;
+}
+document.getElementById('paSwitch').addEventListener('click',()=>{
+  paOn=!paOn;
+  document.getElementById('paSwitch').classList.toggle('on',paOn);
+  document.getElementById('paLabel').innerHTML=`Prior authorization: <b>${paOn?'on':'off'}</b>`;
+  renderFunnel();
+});
+renderFunnel();
+
+/* sim tabs */
+function simTab(n){
+  [1,2,3].forEach(k=>{
+    document.getElementById('simTab'+k).classList.toggle('active',k===n);
+    document.getElementById('sim'+k).classList.toggle('hide',k!==n);
+  });
+}
+document.getElementById('simTab1').addEventListener('click',()=>simTab(1));
+document.getElementById('simTab2').addEventListener('click',()=>simTab(2));
+document.getElementById('simTab3').addEventListener('click',()=>simTab(3));
+
+/* ============ SIMULATE 3: golden record ============ */
+const grCases=[
+ {recs:[['Veeva','Dr. John A. Smith · Cardiology · Newark, NJ · NPI 1234567890'],['Claims','Jonathan Smith MD · Cardiology · Newark NJ · NPI 1234567890'],['IQVIA','J. Smith · Cardiology · Newark · NPI 1234567890']],same:true,
+  why:'Same NPI, same specialty, same location. The NPI is the strongest signal; name formatting varies by source but the identifier resolves them to one golden record.'},
+ {recs:[['Veeva','Dr. Maria Lopez · Oncology · Boston, MA · NPI 2223334444'],['Claims','Maria Lopez MD · Oncology · Boston MA · NPI 9998887777'],['IQVIA','M. Lopez · Oncology · Cambridge MA · NPI 9998887777']],same:false,
+  why:'Two different NPIs appear. Same name and specialty can still be two distinct providers (or a data error). Different NPI means treat as different entities until proven otherwise; do not merge on name alone.'},
+ {recs:[['Veeva','Dr. Robert Chen · Endocrinology · Chicago, IL · NPI 5556667777'],['Claims','Bob Chen MD · Endocrinology · Chicago IL · NPI 5556667777'],['IQVIA','Robert Chen · Endo · Chicago · NPI 5556667777']],same:true,
+  why:'"Bob" vs "Robert" is a nickname, and the abbreviated specialty is cosmetic. Identical NPI plus consistent geography and specialty confirm one entity.'}
+];
+let grIdx=0, grAnswered=false;
+function renderGR(){
+  grAnswered=false;
+  const c=grCases[grIdx];
+  document.getElementById('grRecords').innerHTML=c.recs.map(r=>`<div class="gr-rec"><div class="src">${r[0]}</div>${r[1]}</div>`).join('');
+  document.getElementById('grVerdict').innerHTML='';
+}
+function grAnswer(saidSame){
+  if(grAnswered) return; grAnswered=true;
+  const c=grCases[grIdx]; const right=(saidSame===c.same);
+  document.getElementById('grVerdict').innerHTML=
+    `<div class="callout ${right?'tip':'warn'}">${right?'<b>Correct.</b> ':'<b>Not quite.</b> '}${c.why}</div>`;
+}
+document.getElementById('grSame').addEventListener('click',()=>grAnswer(true));
+document.getElementById('grDiff').addEventListener('click',()=>grAnswer(false));
+document.getElementById('grNext').addEventListener('click',()=>{grIdx=(grIdx+1)%grCases.length;renderGR();});
+renderGR();
+
+/* ============ GLOSSARY ============ */
+const gloss=cards.slice().concat([
+ ['NRx','New prescriptions written in a period.'],
+ ['PHI','Protected Health Information: HIPAA-regulated patient data.'],
+ ['PII','Personally Identifiable Information.'],
+ ['CPT','Procedure codes for medical services.'],
+ ['HCPCS','Codes for drugs, services, and equipment.'],
+ ['Xponent','IQVIA product for prescription data by HCP.'],
+ ['DDD','IQVIA drug distribution data.'],
+ ['Persistence','How long a patient stays on therapy.'],
+ ['Adherence','How closely a patient follows the prescribed regimen.'],
+ ['Star schema','BI model: one fact table surrounded by dimension tables.'],
+ ['ETL','Extract, Transform, Load: transform before loading.'],
+ ['ELT','Extract, Load, Transform: common in cloud warehouses.'],
+ ['Formulary tier','Coverage level that sets patient cost; specialty tiers are costliest.'],
+ ['Step therapy','Insurer requires trying a preferred drug before covering another.'],
+ ['Golden record','The single reconciled master version of an entity.'],
+ ['Symphony Health','Claims and patient-level analytics provider.'],
+ ['Komodo Health','Longitudinal patient-journey and real-world evidence provider.']
+]).sort((a,b)=>a[0].localeCompare(b[0]));
+function renderGloss(f=''){
+  const q=f.toLowerCase();
+  document.getElementById('glossList').innerHTML=gloss
+    .filter(g=>g[0].toLowerCase().includes(q)||g[1].toLowerCase().includes(q))
+    .map(g=>`<div class="gloss-item"><b>${g[0]}</b>: <span>${g[1]}</span></div>`).join('') || '<p class="lead">No match.</p>';
+}
+document.getElementById('glossSearch').addEventListener('input',e=>renderGloss(e.target.value));
+renderGloss();
+
+/* ============ stats ============ */
+function updateStats(){
+  document.getElementById('statKnown').textContent=Object.keys(store.get('paf_known',{})).length;
+  const best=store.get('paf_quizbest',0);
+  document.getElementById('statQuiz').textContent= best?best+'%':'n/a';
+}
+updateStats();
+
+/* ============ attribution ============ */
+document.getElementById('footerAttr').innerHTML='Built by Kshitij Sale · <a href="https://www.linkedin.com/in/kshitij-sale/" target="_blank" rel="noopener">LinkedIn</a>';
+
+/* ============ init ============ */
+applyTrack(track);
+</script>
+</body>
+</html>
