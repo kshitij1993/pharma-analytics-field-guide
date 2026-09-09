@@ -478,6 +478,16 @@ const learn=[
    <tr><td class="term">Medical claims</td><td>Monthly / quarterly</td><td>1–3+ months: the slowest to mature</td></tr>
    <tr><td class="term">CRM (Veeva)</td><td>Continuous</td><td>Same-day rep activity</td></tr></table>
    <div class="callout tip">Claims "restate" as more of a period matures. Comparing a fresh month to a settled one is comparing an incomplete number to a complete one.</div>`},
+ {t:'Sell-in vs. sell-out',level:'advanced',tag:'enrichment',html:`
+   <p>One of the highest-hours, lowest-glory problems in commercial pharma, and it rarely appears in a SQL tutorial. The two numbers measure different things, and the gap between them is inventory.</p>
+   <div class="grid2">
+     <div class="mini"><h4>Sell-in</h4><p style="font-size:0.88rem">What the manufacturer <em>ships</em> into the channel: units sold to wholesalers and distributors. Recognized as company revenue, but it is not demand.</p></div>
+     <div class="mini"><h4>Sell-out</h4><p style="font-size:0.88rem">What actually <em>dispenses</em> to patients at the pharmacy. This is real demand, and it is what prescription and claims data measure.</p></div>
+   </div>
+   <div class="flow" style="margin-top:12px;"><span class="n">Manufacturer</span><span class="a">→</span><span class="n amber">Sell-in (ship)</span><span class="a">→</span><span class="n">Wholesaler / distributor inventory</span><span class="a">→</span><span class="n amber">Sell-out (dispense)</span><span class="a">→</span><span class="n">Patient</span></div>
+   <p>The difference between the two in any period is <b>channel inventory</b> going up or down. A wholesaler stocking up ahead of a price increase inflates sell-in with zero new patients. A destocking quarter deflates it while real demand is flat.</p>
+   <div class="callout warn"><b>Why it eats hours.</b> Sell-in comes from your ERP; sell-out comes from distributor feeds, typically the <b>852</b> (inventory / activity) and <b>867</b> (product transfer / resale) EDI files. Reconciling them means aligning different grains, calendars, and product codes, then explaining the inventory swing so finance and the brand team stop arguing about which number is "real." Both are real; they answer different questions.</div>
+   <p class="fresher-hint">the shortcut to remember: sell-in is what you shipped, sell-out is what patients took. Revenue can look great on sell-in while actual demand is flat, because the extra units are just sitting in a warehouse.</p>`},
  {t:'Market access: payer, PBM, formulary',level:'core',tag:'core',html:`
    <p><b>Payer</b> pays for care (commercial, Medicare, Medicaid). <b>PBM</b> sits between manufacturer and plan and shapes coverage.</p>
    <div class="flow"><span class="n">Manufacturer</span><span class="a">→</span><span class="n">PBM</span><span class="a">→</span><span class="n">Plan</span><span class="a">→</span><span class="n">Pharmacy</span><span class="a">→</span><span class="n">Patient</span></div>
@@ -532,7 +542,7 @@ const learn=[
    <div class="callout tip"><b>Lead with:</b> a data &amp; analytics leader who turns business needs into scalable analytics solutions, manages cross-functional stakeholders, and operates fluently in pharma/healthcare. The tools support the story.</div>`}
 ];
 // stable keys, assigned in source order
-const learnKeys=['acronyms','kpis','framework','sources','providers','projected','cadence','access','veeva','segmentation','architecture','mdm','governance','hipaa','interview','positioning'];
+const learnKeys=['acronyms','kpis','framework','sources','providers','projected','cadence','sellout','access','veeva','segmentation','architecture','mdm','governance','hipaa','interview','positioning'];
 learn.forEach((s,i)=>s.key=learnKeys[i]);
 const learnByKey={}; learn.forEach(s=>learnByKey[s.key]=s);
 
@@ -546,12 +556,12 @@ const trackViews={
   mid:{
     intro:'Leads with depth and market-data nuance. The basics are still here, parked at the bottom as quick reference.',
     path:'Head straight for the nuance in <b>Learn</b>, then pressure-test yourself in <b>Drill → Quiz</b> and <b>Simulate → Diagnostic console</b>.',
-    sections:[['sources',1],['providers',1],['projected',1],['cadence',1],['access',1],['mdm',1],['architecture',1],['governance',1],['hipaa',1],['veeva',1],['segmentation',0],['framework',1],['interview',1],['positioning',0],['acronyms',0],['kpis',0]]
+    sections:[['sources',1],['providers',1],['projected',1],['cadence',1],['sellout',1],['access',1],['mdm',1],['architecture',1],['governance',1],['hipaa',1],['veeva',1],['segmentation',0],['framework',1],['interview',1],['positioning',0],['acronyms',0],['kpis',0]]
   },
   refresher:{
     intro:'Dense and advanced-first. Foundational acronyms and KPIs are hidden entirely; interview and positioning material is surfaced up top.',
     path:'Short on time? Skip ahead to <b>Drill → Quiz</b> and <b>Simulate</b>. The Learn tab is reordered advanced-first and interview-ready for you.',
-    sections:[['projected',1],['cadence',1],['providers',1],['framework',1],['interview',1],['positioning',1],['access',0],['mdm',0],['architecture',0],['governance',0],['hipaa',0],['sources',0],['veeva',0],['segmentation',0]]
+    sections:[['projected',1],['cadence',1],['sellout',1],['providers',1],['framework',1],['interview',1],['positioning',1],['access',0],['mdm',0],['architecture',0],['governance',0],['hipaa',0],['sources',0],['veeva',0],['segmentation',0]]
   }
 };
 const lc=document.getElementById('learnContent');
@@ -626,6 +636,7 @@ const quiz=[
  {q:'Veeva CRM is primarily a source of which kind of data?',o:['Pharmacy claims','HCP engagement and rep activity','Formulary tier placement','Manufacturing deviations'],c:1,e:'Veeva is the CRM system of record for calls, emails, samples, and details, i.e. field engagement, not claims or formulary data.'},
  {q:'Three systems list "Dr. John Smith", "Jonathan Smith MD", and "J Smith". Resolving them to one entity is:',o:['ETL','Master data management','Prior authorization','HCP segmentation'],c:1,e:'Creating a single golden record from conflicting representations across systems is exactly what MDM does.'},
  {q:'Why can two reports of the same metric disagree across data sources?',o:['One used SQL and one used Power BI','Different cadence/latency; claims restate as a period matures','Star schemas are always wrong','NBRx is not a real metric'],c:1,e:'Fresh months are incomplete; claims settle and restate over weeks. Comparing an immature period to a settled one is a top cause of mismatches.'},
+ {q:'Sell-in jumped 15% but sell-out is flat. The most likely explanation is:',o:['A surge of new patients','Channel stocking, inventory built up at wholesalers','A formulary win','A data-quality error in claims'],c:1,e:'Sell-in is what ships into the channel; sell-out is what dispenses to patients. Sell-in rising while sell-out stays flat means units are sitting in wholesaler inventory, not reaching more patients.'},
  {q:'"Projected" syndicated data means:',o:['Only the pharmacies the vendor directly observes','Captured data scaled to a full-market estimate via models','Future forecasts of sales','De-identified patient tokens'],c:1,e:'No vendor sees 100% of the market, so captured data is statistically projected up. A change in projection methodology can shift trends independent of the market.'},
  {q:'The safest framing of HIPAA for an analyst is:',o:['You can never analyze patient data','It depends on how data is identified, handled, and authorized','Only IQVIA data is allowed','Tokenized data is always prohibited'],c:1,e:'De-identified/tokenized data can be used under appropriate controls. HIPAA governs handling and authorization, not analysis outright.'},
  {q:'"Business says the dashboard is wrong." Your first move is to:',o:['Defend the dashboard\'s numbers','Understand the discrepancy and align on the metric definition','Rebuild the pipeline','Escalate to IT'],c:1,e:'Start by understanding the gap and agreeing on definitions before validating sources and transforms. Don\'t defend first.'},
@@ -806,6 +817,9 @@ const gloss=cards.slice().concat([
  ['Formulary tier','Coverage level that sets patient cost; specialty tiers are costliest.'],
  ['Step therapy','Insurer requires trying a preferred drug before covering another.'],
  ['Golden record','The single reconciled master version of an entity.'],
+ ['Sell-in','Units the manufacturer ships into wholesalers/distributors; company revenue, not demand.'],
+ ['Sell-out','Units actually dispensed to patients; real demand, measured by Rx and claims data.'],
+ ['852 / 867','Distributor EDI feeds for channel inventory (852) and product transfer/resale (867).'],
  ['Symphony Health','Claims and patient-level analytics provider.'],
  ['Komodo Health','Longitudinal patient-journey and real-world evidence provider.']
 ]).sort((a,b)=>a[0].localeCompare(b[0]));
