@@ -1,0 +1,469 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "Veltrana-sim Data Pipeline: Generate to Bronze, Silver, Gold",
+    "output": "veltrana-pipeline.html",
+    "animation": "none",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/kshitij1993/veltrana-sim.git",
+      "provider": "github",
+      "revision": "671ff3c3b2bbc0ee2309f8b9c732b28c9398f134"
+    },
+    "viewBox": [
+      1085,
+      640
+    ]
+  },
+  "stages": [
+    {
+      "label": "Generate"
+    },
+    {
+      "label": "Land"
+    },
+    {
+      "label": "Bronze"
+    },
+    {
+      "label": "Silver"
+    },
+    {
+      "label": "Gold"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "key",
+      "type": "security",
+      "label": "answer_key.json",
+      "sublabel": "sealed ground truth",
+      "stage": 0,
+      "row": 0,
+      "tag": "sealed",
+      "sources": [
+        {
+          "path": "generator/effects.py",
+          "line": 574,
+          "end_line": 581,
+          "label": "build_and_seal"
+        }
+      ]
+    },
+    {
+      "id": "world",
+      "type": "backend",
+      "label": "True world",
+      "sublabel": "world.py, effects.py",
+      "stage": 0,
+      "row": 1,
+      "sources": [
+        {
+          "path": "generator/world.py",
+          "line": 273,
+          "label": "build_true_world"
+        },
+        {
+          "path": "generator/effects.py",
+          "line": 574,
+          "end_line": 586,
+          "label": "build_and_seal"
+        }
+      ],
+      "width": 130
+    },
+    {
+      "id": "sources",
+      "type": "backend",
+      "label": "Source modules",
+      "sublabel": "sources/*.py, export.py",
+      "stage": 0,
+      "row": 2,
+      "tag": "9 modules",
+      "sources": [
+        {
+          "path": "generator/export.py",
+          "line": 55,
+          "end_line": 72,
+          "label": "build_bronze"
+        }
+      ],
+      "width": 130
+    },
+    {
+      "id": "parquet",
+      "type": "database",
+      "label": "Bronze Parquet",
+      "sublabel": "9 tables via COPY",
+      "stage": 1,
+      "row": 2,
+      "sources": [
+        {
+          "path": "generator/sources/common.py",
+          "line": 161,
+          "end_line": 165,
+          "label": "write_bronze"
+        }
+      ],
+      "width": 112
+    },
+    {
+      "id": "b_rx",
+      "type": "database",
+      "label": "rx_audit",
+      "sublabel": "projected volume",
+      "stage": 2,
+      "row": 0,
+      "sources": [
+        {
+          "path": "dbt/models/sources.yml",
+          "line": 12,
+          "end_line": 13
+        }
+      ],
+      "width": 124
+    },
+    {
+      "id": "b_hcp",
+      "type": "database",
+      "label": "hcp_master",
+      "sublabel": "quarterly snapshots",
+      "stage": 2,
+      "row": 1,
+      "tag": "~8% duplicates",
+      "sources": [
+        {
+          "path": "dbt/models/sources.yml",
+          "line": 24,
+          "end_line": 29
+        }
+      ],
+      "width": 124
+    },
+    {
+      "id": "b_claims",
+      "type": "database",
+      "label": "claims",
+      "sublabel": "tokenized patient IDs",
+      "stage": 2,
+      "row": 2,
+      "sources": [
+        {
+          "path": "dbt/models/sources.yml",
+          "line": 14,
+          "end_line": 15
+        }
+      ],
+      "width": 124
+    },
+    {
+      "id": "b_hub",
+      "type": "database",
+      "label": "sp_hub",
+      "sublabel": "per-SP status codes",
+      "stage": 2,
+      "row": 3,
+      "sources": [
+        {
+          "path": "dbt/models/sources.yml",
+          "line": 16,
+          "end_line": 17
+        }
+      ],
+      "width": 124
+    },
+    {
+      "id": "s_rx",
+      "type": "backend",
+      "label": "rx_audit_clean",
+      "sublabel": "HCP IDs resolved",
+      "stage": 3,
+      "row": 0,
+      "sources": [
+        {
+          "path": "dbt/models/silver/rx_audit_clean.sql",
+          "line": 19,
+          "end_line": 20
+        }
+      ],
+      "width": 124
+    },
+    {
+      "id": "s_hcp",
+      "type": "security",
+      "label": "hcp_golden_record",
+      "sublabel": "xref + 5 int models",
+      "stage": 3,
+      "row": 1,
+      "tag": "pg_trgm",
+      "sources": [
+        {
+          "path": "dbt/models/silver/int_hcp_master_normalized.sql",
+          "line": 50
+        },
+        {
+          "path": "dbt/models/silver/hcp_golden_record.sql",
+          "line": 14,
+          "end_line": 23
+        },
+        {
+          "path": "dbt/models/silver/hcp_golden_record_xref.sql",
+          "line": 23,
+          "end_line": 25
+        }
+      ],
+      "width": 124
+    },
+    {
+      "id": "s_claims",
+      "type": "backend",
+      "label": "claims_clean",
+      "sublabel": "HCP IDs resolved",
+      "stage": 3,
+      "row": 2,
+      "sources": [
+        {
+          "path": "dbt/models/silver/claims_clean.sql",
+          "line": 23,
+          "end_line": 24
+        }
+      ],
+      "width": 124
+    },
+    {
+      "id": "s_hub",
+      "type": "backend",
+      "label": "sp_hub_normalized",
+      "sublabel": "uses seed code map",
+      "stage": 3,
+      "row": 3,
+      "sources": [
+        {
+          "path": "dbt/models/silver/sp_hub_normalized.sql",
+          "line": 25,
+          "end_line": 26
+        },
+        {
+          "path": "dbt/seeds/sp_status_code_map.csv",
+          "line": 1,
+          "end_line": 3,
+          "label": "status code map seed"
+        }
+      ],
+      "width": 124
+    },
+    {
+      "id": "g_funnel",
+      "type": "backend",
+      "label": "patient_journey_funnel",
+      "sublabel": "one row per patient",
+      "stage": 4,
+      "row": 2,
+      "tag": "only Gold model",
+      "sources": [
+        {
+          "path": "dbt/models/gold/patient_journey_funnel.sql",
+          "line": 38
+        },
+        {
+          "path": "dbt/models/gold/patient_journey_funnel.sql",
+          "line": 67,
+          "end_line": 68
+        },
+        {
+          "path": "dbt/dbt_project.yml",
+          "line": 26,
+          "end_line": 32
+        }
+      ],
+      "width": 150
+    }
+  ],
+  "flows": [
+    {
+      "id": "seal",
+      "from": "world",
+      "to": "key",
+      "label": "seals key",
+      "variant": "security",
+      "route": "straight",
+      "labelAt": [
+        100,
+        214
+      ]
+    },
+    {
+      "id": "derive",
+      "from": "world",
+      "to": "sources",
+      "label": "true world",
+      "variant": "emphasis",
+      "route": "straight",
+      "labelAt": [
+        100,
+        328
+      ]
+    },
+    {
+      "id": "export",
+      "from": "sources",
+      "to": "parquet",
+      "label": "to_parquet",
+      "classification": "per-table file",
+      "variant": "emphasis"
+    },
+    {
+      "id": "load-rx",
+      "from": "parquet",
+      "to": "b_rx",
+      "label": "rx",
+      "variant": "default",
+      "channelX": 385,
+      "labelAt": [
+        437,
+        143
+      ],
+      "route": "vertical-channel"
+    },
+    {
+      "id": "load-hcp",
+      "from": "parquet",
+      "to": "b_hcp",
+      "label": "hcp",
+      "variant": "default",
+      "channelX": 405,
+      "labelAt": [
+        437,
+        257
+      ],
+      "route": "vertical-channel"
+    },
+    {
+      "id": "load-claims",
+      "from": "parquet",
+      "to": "b_claims",
+      "label": "claims",
+      "variant": "emphasis",
+      "route": "straight",
+      "labelAt": [
+        440,
+        371
+      ]
+    },
+    {
+      "id": "load-hub",
+      "from": "parquet",
+      "to": "b_hub",
+      "label": "hub",
+      "variant": "default",
+      "channelX": 405,
+      "labelAt": [
+        437,
+        485
+      ],
+      "route": "vertical-channel"
+    },
+    {
+      "id": "hcp-golden",
+      "from": "b_hcp",
+      "to": "s_hcp",
+      "label": "dedupe",
+      "classification": "MDM",
+      "variant": "security",
+      "route": "straight"
+    },
+    {
+      "id": "rx-clean",
+      "from": "b_rx",
+      "to": "s_rx",
+      "label": "clean",
+      "variant": "default",
+      "route": "straight"
+    },
+    {
+      "id": "claims-clean",
+      "from": "b_claims",
+      "to": "s_claims",
+      "label": "clean",
+      "variant": "emphasis",
+      "route": "straight"
+    },
+    {
+      "id": "hub-norm",
+      "from": "b_hub",
+      "to": "s_hub",
+      "label": "normalize",
+      "variant": "emphasis",
+      "route": "straight"
+    },
+    {
+      "id": "xref-rx",
+      "from": "s_hcp",
+      "to": "s_rx",
+      "label": "xref join",
+      "classification": "raw_hcp_id",
+      "variant": "security",
+      "route": "straight",
+      "labelAt": [
+        745,
+        214
+      ]
+    },
+    {
+      "id": "xref-claims",
+      "from": "s_hcp",
+      "to": "s_claims",
+      "label": "xref join",
+      "classification": "raw_hcp_id",
+      "variant": "security",
+      "route": "straight",
+      "labelAt": [
+        745,
+        328
+      ]
+    },
+    {
+      "id": "gold-claims",
+      "from": "s_claims",
+      "to": "g_funnel",
+      "label": "claims",
+      "variant": "emphasis",
+      "route": "straight"
+    },
+    {
+      "id": "gold-hub",
+      "from": "s_hub",
+      "to": "g_funnel",
+      "label": "journey",
+      "variant": "emphasis"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Medallion path",
+      "items": [
+        "Bronze is a 1:1 COPY of the generator's Parquet exports with dtype-inferred schemas, no cleanup",
+        "Silver (dbt tables) cleans and conforms three fact sources and builds the HCP golden record",
+        "Gold currently holds one model, patient_journey_funnel"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "HCP identity resolution",
+      "items": [
+        "hcp_master carries about 8% duplicate HCPs with blank or mistyped NPIs, so NPI is not a safe join key",
+        "Silver normalizes, fuzzy-matches with pg_trgm, and assigns golden IDs; rx_audit and claims join through the xref"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Not wired yet at this revision",
+      "items": [
+        "sell_in, crm_calls, rep_roster, formulary and alignment (5 of 9 Bronze tables) load but no dbt model reads them",
+        "Gold recomputes the claims patient token with pgcrypto to link hub patients to claims"
+      ]
+    }
+  ]
+}
