@@ -174,6 +174,22 @@
   .gr-rec{background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:14px;font-size:0.85rem;}
   .gr-rec .src{font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--amber);margin-bottom:6px;}
 
+  /* Case files */
+  .chart-box{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px 14px 10px;margin:12px 0;}
+  .chart-title{font-size:0.85rem;font-weight:600;color:var(--muted);margin-bottom:6px;}
+  .chart svg{display:block;width:100%;height:auto;}
+  .chart text{font-family:'IBM Plex Mono',monospace;font-size:11px;fill:var(--muted);}
+  .chart .gridline{stroke:var(--line);stroke-width:1;}
+  .chart .mk{stroke:var(--amber);stroke-width:1.5;stroke-dasharray:4 3;}
+  .chart text.mk-t{fill:var(--amber);font-weight:600;}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:0.8rem;color:var(--muted);margin-top:4px;}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;}
+  body[data-track="refresher"] .case-cue{display:none;}
+  .case-meta{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px;}
+  .case-result{text-align:center;}
+  .emoji-grid{font-size:1.6rem;letter-spacing:4px;margin:6px 0 2px;}
+  .share-card{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px 16px;font-family:'IBM Plex Mono',monospace;font-size:0.85rem;white-space:pre-wrap;text-align:left;margin:14px auto;max-width:380px;user-select:all;}
+
   /* ---------- Glossary ---------- */
   .search{width:100%;padding:13px 16px;border:1px solid var(--line);border-radius:10px;font-size:0.95rem;font-family:inherit;margin-bottom:16px;}
   .search:focus{outline:2px solid var(--teal-soft);border-color:var(--teal);}
@@ -230,14 +246,14 @@
       <button class="tile" data-goto="explore"><span class="icon">🗺️</span><h3>Explore</h3><p>Click through the commercial ecosystem, node by node.</p></button>
       <button class="tile" data-goto="learn"><span class="icon">📘</span><h3>Learn</h3><p>The full reference: acronyms, KPIs, access, architecture.</p></button>
       <button class="tile" data-goto="drill"><span class="icon">🎴</span><h3>Drill</h3><p>Flashcards and a scored quiz to test recall.</p></button>
-      <button class="tile" data-goto="simulate"><span class="icon">🧪</span><h3>Simulate</h3><p>Diagnose a sales drop, run the patient funnel, match records.</p></button>
+      <button class="tile" data-goto="simulate"><span class="icon">🧪</span><h3>Simulate</h3><p>Diagnose a sales drop, run the patient funnel, match records, solve case files.</p></button>
     </div>
 
     <div class="stat-row">
       <div class="stat"><b id="statKnown">0</b><small>terms marked known</small></div>
       <div class="stat"><b id="statQuiz">n/a</b><small>best quiz score</small></div>
       <div class="stat"><b>20</b><small>core concepts</small></div>
-      <div class="stat"><b>3</b><small>simulations</small></div>
+      <div class="stat"><b>4</b><small>simulations</small></div>
     </div>
   </section>
 
@@ -299,6 +315,7 @@
       <button id="simTab1" class="active">Diagnostic console</button>
       <button id="simTab2">Patient journey funnel</button>
       <button id="simTab3">Golden record</button>
+      <button id="simTab4">Case files</button>
     </div>
 
     <!-- Sim 1: Diagnostic -->
@@ -339,6 +356,15 @@
         <div id="grVerdict"></div>
         <button class="btn primary" id="grNext" style="margin-top:10px;" >Next case</button>
       </div>
+    </div>
+
+    <!-- Sim 4: Case files -->
+    <div id="sim4" class="hide">
+      <div id="caseHome">
+        <p class="lead" style="font-size:0.92rem;margin-bottom:14px;">Six case files, one per commercial theme. Each has a few rounds: read the chart, answer in plain language, learn why. Finish a case to get a result card you can copy and share. Your track sets how much guidance you get before each question.</p>
+        <div class="home-tiles" id="caseTiles"></div>
+      </div>
+      <div id="casePlay" class="hide"></div>
     </div>
   </section>
 
@@ -764,7 +790,7 @@ renderFunnel();
 
 /* sim tabs */
 function simTab(n){
-  [1,2,3].forEach(k=>{
+  [1,2,3,4].forEach(k=>{
     document.getElementById('simTab'+k).classList.toggle('active',k===n);
     document.getElementById('sim'+k).classList.toggle('hide',k!==n);
   });
@@ -772,6 +798,7 @@ function simTab(n){
 document.getElementById('simTab1').addEventListener('click',()=>simTab(1));
 document.getElementById('simTab2').addEventListener('click',()=>simTab(2));
 document.getElementById('simTab3').addEventListener('click',()=>simTab(3));
+document.getElementById('simTab4').addEventListener('click',()=>simTab(4));
 
 /* ============ SIMULATE 3: golden record ============ */
 const grCases=[
@@ -799,6 +826,265 @@ document.getElementById('grSame').addEventListener('click',()=>grAnswer(true));
 document.getElementById('grDiff').addEventListener('click',()=>grAnswer(false));
 document.getElementById('grNext').addEventListener('click',()=>{grIdx=(grIdx+1)%grCases.length;renderGR();});
 renderGR();
+
+/* ============ SIMULATE 4: case files ============ */
+// chart: {type:'line'|'bar', title, labels, series:[{name,vals}], unit, mark:{i,text} (line), hi:[bar indexes] (single series)}
+// read = fresher-only primer, cue = fresher + mid-level nudge, refresher sees neither.
+const cases=[
+ {id:'access',icon:'🏛️',name:'Market Access',blurb:'Payers, prior auth, and the gap between gross and net.',rounds:[
+  {scene:'Weekly data for one brand, indexed so week 1 = 100.',
+   chart:{type:'line',title:'NBRx vs TRx, weekly index',labels:['W1','W2','W3','W4','W5','W6','W7','W8','W9','W10','W11','W12'],series:[{name:'NBRx (new starts)',vals:[100,102,99,101,100,98,64,58,55,57,54,56]},{name:'TRx (all fills)',vals:[100,101,101,102,101,101,100,99,97,95,93,92]}],mark:{i:6,text:'Payer change'}},
+   read:'NBRx counts patients starting this brand for the first time; TRx counts every fill, including refills. Both lines start at 100 so you can compare their shape.',
+   cue:'Compare the shape of the two lines, not just the size of the drop.',
+   q:'New starts fell off a cliff in week 7, but total scripts barely moved at first. What fits best?',
+   o:['Reps stopped visiting HCPs','A payer added a coverage hurdle that hits new patients, while existing patients are grandfathered','The whole market shrank','Refills stopped'],c:1,
+   e:'Existing patients are usually grandfathered under a new coverage rule, so refills hold up while new starts hit the wall immediately. TRx then erodes slowly as patients age out. A rep-activity problem would look gradual, not a one-week cliff.'},
+  {scene:'Prior authorization results for the same brand, by plan.',
+   chart:{type:'bar',title:'First-submission PA approval rate, by plan',labels:['Plan A','Plan B','Plan C','Plan D'],series:[{name:'Approval rate',vals:[82,79,38,80]}],unit:'%',hi:[2]},
+   read:'Prior authorization (PA) means the plan must approve the drug before it will cover it. First-submission approval is the share approved without a resubmit.',
+   cue:'Look for the bar that does not belong with the others.',
+   q:'One plan approves far fewer PA requests. What is the smartest first move?',
+   o:['Add more reps calling on every HCP nationally','Pull that plan\'s rejection reasons and fix the paperwork or appeal pattern','Cut the brand\'s price for all plans','Ignore it, since three plans look fine'],c:1,
+   e:'When approval rates differ by payer, the friction is payer-specific: a missing document, a criterion, a coding issue. Rejection reason codes tell you which. Price cuts and extra calls do not fix a paperwork gate.'},
+  {scene:'Where each $100 of gross sales ends up.',
+   chart:{type:'bar',title:'Gross to net, $ per $100 of gross sales',labels:['Gross','Rebates','Fees & copay aid','Net'],series:[{name:'$',vals:[100,30,12,58]}],hi:[1]},
+   read:'Gross sales is list price × units. Net is what the company keeps after discounts and rebates. The gap between them is called gross-to-net (GTN).',
+   cue:'Which single bar takes the biggest bite between gross and net?',
+   q:'Rebates are the biggest deduction. Why would a company agree to pay them?',
+   o:['Rebates are a tax on every sale','To reduce the number of patients','To buy better formulary position and volume, at the cost of net revenue per script','To fix data quality issues'],c:2,
+   e:'Rebates are negotiated with PBMs and plans in exchange for coverage, better tiers, or fewer restrictions. The company gives up net revenue per script to gain volume and access. GTN tells you how much that trade costs.'}
+ ]},
+ {id:'journey',icon:'🧭',name:'Patient Journey',blurb:'Funnels, persistence, and where patients quietly disappear.',rounds:[
+  {scene:'1,000 patients diagnosed with the condition, followed through each step.',
+   chart:{type:'bar',title:'Patients remaining at each step',labels:['Diagnosed','Rx','Approved','Filled','6 months'],series:[{name:'Patients',vals:[1000,720,610,480,290]}]},
+   read:'A funnel shows how many patients survive each step. Persistence means staying on therapy over time.',
+   cue:'Work out the percent kept at each step, not just the raw count.',
+   q:'Which step loses the biggest share of the patients who reached it?',
+   o:['Rx written → approved','Approved → filled','Filled → still on therapy at 6 months','Diagnosed → Rx written'],c:2,
+   e:'Compare each step to the one before it: 72%, 85%, 79%, then 60%. The final step keeps only 60% of filled patients, so persistence is the biggest leak. The first drop looks bigger in raw numbers, but step-to-step conversion is what matters.'},
+  {scene:'Two groups of patients on the same therapy, tracked for six months.',
+   chart:{type:'line',title:'% of patients still on therapy',labels:['M0','M1','M2','M3','M4','M5','M6'],series:[{name:'In support program',vals:[100,88,80,74,70,67,65]},{name:'Not in program',vals:[100,80,66,56,49,44,41]}],unit:'%'},
+   read:'Persistence curves start at 100% and show how many patients are still on therapy over time. A patient support program offers things like nurse calls and copay help.',
+   cue:'Note the gap, then ask whether the two groups could differ for any reason besides the program.',
+   q:'What is the fairest reading of this chart?',
+   o:['Enrolled patients stay on therapy longer, though they may also have been more motivated to begin with','The program causes exactly a 24-point gain','The program makes patients quit sooner','Both groups behave the same'],c:0,
+   e:'The gap is real, but patients who choose to enroll often differ from those who do not (more engaged, better supported). So it is a strong association, not proof of a 24-point causal effect. Selection bias is the caveat to name.'},
+  {scene:'Average days from prescription to first fill, by pharmacy type.',
+   chart:{type:'bar',title:'Days from Rx to first fill',labels:['Retail','Mail order','Specialty'],series:[{name:'Days',vals:[1.2,3.5,9.8]}],hi:[2]},
+   read:'Specialty pharmacies dispense costly, complex drugs and coordinate access and patient support alongside the fill.',
+   cue:'Ask what extra work a specialty fill involves.',
+   q:'Specialty takes far longer to fill. What is the most likely reason, and why does it matter?',
+   o:['Specialty pharmacies are simply slower at counting pills','The data must be wrong; specialty reports late','Longer waits improve adherence','Specialty checks benefits, chases PA, and onboards the patient first, and every extra day raises the risk the patient never starts'],c:3,
+   e:'Complex therapies route through specialty pharmacies, which verify benefits, chase PA, and train the patient before shipping. That work is needed, but each day of delay increases abandonment, so time-to-fill is a key KPI.'}
+ ]},
+ {id:'promo',icon:'📣',name:'Promotional Response',blurb:'Calls, frequency, and diminishing returns.',rounds:[
+  {scene:'Eight months of field activity and scripts, both indexed to month 1 = 100.',
+   chart:{type:'line',title:'Rep calls vs TRx, monthly index',labels:['M1','M2','M3','M4','M5','M6','M7','M8'],series:[{name:'Rep calls',vals:[100,110,120,135,150,160,170,180]},{name:'TRx',vals:[100,101,100,102,101,100,101,100]}]},
+   read:'A call is a rep visit to an HCP. Indexing both lines to 100 lets you compare effort against results.',
+   cue:'Do the two lines move together?',
+   q:'Calls rose 80% and TRx did not move. What is the best read?',
+   o:['More calls always work, so wait longer','The extra calls are landing on HCPs who are already loyal or have little potential, so returns have flattened','The reps are falsifying call logs','Promotion does not affect TRx'],c:1,
+   e:'Promotional response has diminishing returns: past a point, more calls to the same HCPs add little. Check where the extra calls went, and whether effort could shift to under-served, high-potential HCPs.'},
+  {scene:'Prescribing lift for HCPs grouped by how often they were called in a quarter.',
+   chart:{type:'bar',title:'Average TRx lift vs uncalled HCPs',labels:['0','1–3','4–6','7–9','10+'],series:[{name:'Lift',vals:[0,6,11,12,12.5]}],unit:'%'},
+   read:'A response curve links promotional effort to results. Lift is the extra prescribing compared with HCPs who were not called.',
+   cue:'Find where the bars stop growing much.',
+   q:'Based on this response curve, which call frequency is the best target?',
+   o:['10+ calls, since lift is highest','4–6 calls; beyond that the extra lift is tiny for the extra effort','0 calls, because promotion does not work','1–3 calls, since the first calls do all the work'],c:1,
+   e:'Lift climbs quickly up to about 4–6 calls, then flattens: 7–9 adds one point and 10+ adds half a point. Response curves set frequency by stopping where each extra call costs more than it returns.'}
+ ]},
+ {id:'quality',icon:'🧹',name:'Data Quality',blurb:'Step changes, duplicates, and immature months.',rounds:[
+  {scene:'Monthly TRx from a syndicated data vendor, indexed to month 1 = 100.',
+   chart:{type:'line',title:'Our brand vs a competitor, monthly index',labels:['M1','M2','M3','M4','M5','M6','M7','M8'],series:[{name:'Our brand',vals:[100,100,101,101,100,130,131,132]},{name:'Competitor',vals:[100,99,100,100,101,129,130,131]}],mark:{i:5,text:'Step change'}},
+   read:'"Projected" data is scaled up from the pharmacies a vendor can see. If the vendor changes how it scales, trends can jump for reasons unrelated to demand.',
+   cue:'Ask what else moved at the same moment.',
+   q:'Our brand jumped 30% in month 6, but so did a competitor. What should you check first?',
+   o:['Whether the sales team had an unusually great month','Whether we cut prices','Whether the vendor changed its projection method or added pharmacies to its panel','Nothing; this is a real market surge'],c:2,
+   e:'When every brand steps up in the same month, the market did not suddenly grow 30%; the measurement changed. Syndicated data is projected from a sample, so a methodology or panel change can create a step. Check vendor release notes before explaining it commercially.'},
+  {scene:'A count of prescribers by how many CRM records they have.',
+   chart:{type:'bar',title:'Prescribers by CRM records per NPI',labels:['1 record','2 records','3+ records'],series:[{name:'Prescribers',vals:[8200,1400,400]}]},
+   read:'An NPI is a prescriber\'s unique ID. Several records for one NPI are duplicates that master data management (MDM) tries to merge into a golden record.',
+   cue:'Ask what happens to a prescriber\'s totals when they sit under three different IDs.',
+   q:'Some prescribers have several CRM records. Why does that hurt targeting?',
+   o:['It only matters for compliance audits','It makes the CRM load slower','It has no effect on analysis','It splits one prescriber\'s calls and Rx across records, so their real potential looks smaller'],c:3,
+   e:'Duplicates fragment calls and prescriptions across several IDs, so a top prescriber can look like three mid-tier ones and be mis-tiered. MDM resolves duplicates to one golden record, usually anchored on NPI.'},
+  {scene:'Claims-based TRx for the last six months, as of today.',
+   chart:{type:'bar',title:'Claims TRx by month (thousands)',labels:['M1','M2','M3','M4','M5','M6'],series:[{name:'TRx',vals:[100,102,101,99,100,62]}],hi:[5]},
+   read:'Claims arrive late and are restated as they mature, so the newest month is always incomplete.',
+   cue:'Ask whether the last bar is comparable to the others.',
+   q:'The latest month looks 38% down. What is the right response?',
+   o:['Check whether the month is fully settled, and compare periods at equal maturity','Escalate it as a sales emergency','Delete the month from the report','Assume a competitor took the share'],c:0,
+   e:'Claims land late, so the newest month is incomplete and is revised upward as data arrives. Comparing it to settled months creates a false alarm. Flag immature periods, or compare like-for-like maturity.'}
+ ]},
+ {id:'forecast',icon:'📈',name:'Forecasting',blurb:'Seasonality, scenarios, and false precision.',rounds:[
+  {scene:'Last year\'s monthly TRx for a mature brand, indexed so April = 100.',
+   chart:{type:'line',title:'Monthly TRx index, last year',labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],series:[{name:'TRx index',vals:[82,90,97,100,101,100,99,100,101,102,104,108]}]},
+   read:'Seasonality is a pattern that repeats on a calendar cycle. Indexed means values are scaled so one base month equals 100.',
+   cue:'Look for a shape that could repeat every year.',
+   q:'You are forecasting next January. What should the forecast reflect?',
+   o:['December\'s upward trend continuing','A flat line at the annual average','The dip was random noise, so ignore it','A January dip, which repeats each year as deductibles reset and patients pay more at the pharmacy'],c:3,
+   e:'Deductibles and copays reset in January, so fills often dip and rebuild through spring. Extrapolating December\'s high would overshoot. A good forecast separates the underlying trend from the seasonal pattern.'},
+  {scene:'The planning team has produced three versions of next year\'s revenue.',
+   chart:{type:'bar',title:'Forecast revenue, indexed to base = 100',labels:['Downside','Base','Upside'],series:[{name:'Revenue',vals:[70,100,125]}]},
+   read:'A forecast projects future sales. Scenarios are alternative versions built on different assumptions.',
+   cue:'Notice the range is not symmetric around the base.',
+   q:'Why show three scenarios instead of one forecast number?',
+   o:['To make the deck look thorough','Because forecasting tools require three inputs','Because launches and coverage decisions are uncertain, and a range shows the risk so teams can plan for it','Because the base case is always wrong'],c:2,
+   e:'A single number implies false precision. Scenarios tie the range to specific uncertain events, such as a competitor launch or a payer decision, so the business can plan stock and headcount for more than one outcome.'}
+ ]},
+ {id:'targeting',icon:'🎯',name:'HCP Targeting',blurb:'Deciles, potential, and where to send the rep.',rounds:[
+  {scene:'Brand TRx for one quarter, with prescribers ranked into deciles.',
+   chart:{type:'bar',title:'Share of brand TRx by prescriber decile',labels:['D1','D2','D3','D4','D5','D6','D7','D8','D9','D10'],series:[{name:'Share of TRx',vals:[34,22,14,10,7,5,3,2,2,1]}],unit:'%'},
+   read:'Deciles rank prescribers by volume from D1 (highest) to D10. Segmentation tiers HCPs so limited rep time goes where it matters.',
+   cue:'Add up the first three bars.',
+   q:'Where should most of the call effort go?',
+   o:['Spread evenly across all ten deciles','Only decile 10, since they need the most help','The top deciles that hold most of the volume, while watching for high-potential low writers','Nobody; stop calling'],c:2,
+   e:'The top three deciles hold 70% of volume (34 + 22 + 14). Prescribing is concentrated, so decile targeting focuses scarce rep time. But past volume is not potential: a low writer with a large patient pool may deserve attention, as the next round shows.'},
+  {scene:'Three prescribers, compared on potential versus what they write today.',
+   chart:{type:'bar',title:'Patient potential vs current Rx (index)',labels:['Dr. A','Dr. B','Dr. C'],series:[{name:'Potential',vals:[100,100,20]},{name:'Current Rx',vals:[90,20,18]}]},
+   read:'Potential estimates how many patients a prescriber could treat with the brand. Headroom is the gap between potential and current writing.',
+   cue:'Compare the two bars within each doctor, not across doctors.',
+   q:'Which prescriber offers the most room to grow the brand?',
+   o:['Dr. B: large potential but writing little','Dr. A: already close to full potential','Dr. C: small potential, already near it','All three equally'],c:0,
+   e:'Headroom is potential minus current: Dr. B has 80 points, Dr. A has 10, Dr. C just 2. Targeting on volume alone would pick Dr. A, who is nearly maxed out. Potential-versus-actual gaps show where extra effort can change behavior.'}
+ ]}
+];
+
+const seriesColors=['var(--teal)','var(--amber)','var(--rose)'];
+function chartSVG(c){
+  const W=560,H=220,L=42,R=14,T=16,B=30,pw=W-L-R,ph=H-T-B,u=c.unit||'',n=c.labels.length,ns=c.series.length;
+  const all=c.series.flatMap(s=>s.vals);
+  let max=Math.max(...all),min=0;
+  const niceStep=raw=>{ const p=Math.pow(10,Math.floor(Math.log10(raw))); return [1,1.5,2,2.5,3,4,5,6,8,10].map(m=>m*p).find(s=>s>=raw); };
+  if(c.type==='line'){
+    const lo=Math.min(...all),dmax=max; let step=niceStep((dmax-lo)*1.15/4||1);
+    for(;;){ min=Math.max(0,Math.floor((lo-(dmax-lo)*0.05)/step)*step); max=min+step*4; if(max>=dmax*1.02||step>1e6) break; step=niceStep(step*1.01); }
+  } else { const step=niceStep(max*1.12/4); max=step*4; }
+  const y=v=>T+ph-(v-min)/(max-min)*ph;
+  const fmt=v=>(Math.abs(v)>=100||Number.isInteger(v)?Math.round(v).toLocaleString():v.toFixed(1))+u;
+  let g='';
+  for(let k=0;k<=4;k++){ const v=min+(max-min)*k/4,yy=y(v);
+    g+=`<line class="gridline" x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}"/><text x="${L-6}" y="${yy+4}" text-anchor="end">${fmt(v)}</text>`; }
+  if(c.type==='line'){
+    const x=i=>L+i/(n-1)*pw, step=n>8?2:1;
+    c.labels.forEach((l,i)=>{ if(i%step===0) g+=`<text x="${x(i)}" y="${H-10}" text-anchor="middle">${l}</text>`; });
+    if(c.mark) g+=`<line class="mk" x1="${x(c.mark.i)}" x2="${x(c.mark.i)}" y1="${T}" y2="${T+ph}"/><text class="mk-t" x="${x(c.mark.i)+5}" y="${T+10}">${c.mark.text}</text>`;
+    c.series.forEach((s,si)=>{
+      const col=seriesColors[si];
+      g+=`<polyline fill="none" style="stroke:${col}" stroke-width="2.5" stroke-linejoin="round" points="${s.vals.map((v,i)=>x(i)+','+y(v)).join(' ')}"/>`;
+      const li=s.vals.length-1; g+=`<circle cx="${x(li)}" cy="${y(s.vals[li])}" r="3.5" style="fill:${col}"/>`;
+    });
+  } else {
+    const gw=pw/n, bw=gw*0.62/ns;
+    c.labels.forEach((l,i)=>{
+      const gx=L+gw*i+gw*0.19;
+      g+=`<text x="${L+gw*i+gw/2}" y="${H-10}" text-anchor="middle">${l}</text>`;
+      c.series.forEach((s,si)=>{
+        const v=s.vals[i],bx=gx+si*bw,hi=c.hi&&c.hi.includes(i),col=hi?'var(--rose)':seriesColors[si];
+        g+=`<rect x="${bx}" y="${y(v)}" width="${bw-2}" height="${Math.max(0,T+ph-y(v))}" rx="3" style="fill:${col}"/><text x="${bx+(bw-2)/2}" y="${y(v)-4}" text-anchor="middle">${fmt(v)}</text>`;
+      });
+    });
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${c.title}">${g}</svg>`;
+}
+function chartBox(c){
+  const legend=c.series.length>1?`<div class="legend">${c.series.map((s,i)=>`<span><i style="background:${seriesColors[i]}"></i>${s.name}</span>`).join('')}</div>`:'';
+  return `<div class="chart-box"><div class="chart-title">${c.title}</div><div class="chart">${chartSVG(c)}</div>${legend}</div>`;
+}
+
+let caseObj=null, caseIdx=0, caseResults=[], caseAnswered=false;
+const caseHomeEl=document.getElementById('caseHome'), casePlayEl=document.getElementById('casePlay');
+function caseSaved(){ return store.get('paf_cases',{}); }
+function renderCaseHome(){
+  const saved=caseSaved();
+  document.getElementById('caseTiles').innerHTML=cases.map(c=>{
+    const s=saved[c.id];
+    return `<button class="tile" data-case="${c.id}"><span class="icon">${c.icon}</span><h3>${c.name}</h3><p>${c.blurb}</p>
+      <p style="margin-top:8px;font-size:0.8rem;"><span class="mono">${c.rounds.length} rounds</span>${s?` · <b style="color:var(--teal-deep)">best ${s.best}/${c.rounds.length}</b>`:''}</p></button>`;
+  }).join('');
+  casePlayEl.classList.add('hide'); caseHomeEl.classList.remove('hide');
+}
+document.getElementById('caseTiles').addEventListener('click',e=>{
+  const b=e.target.closest('[data-case]'); if(b) startCase(b.dataset.case);
+});
+function startCase(id){
+  caseObj=cases.find(c=>c.id===id); caseIdx=0; caseResults=[];
+  caseHomeEl.classList.add('hide'); casePlayEl.classList.remove('hide');
+  renderCaseRound();
+}
+function renderCaseRound(){
+  if(caseIdx>=caseObj.rounds.length){ endCase(); return; }
+  caseAnswered=false;
+  const r=caseObj.rounds[caseIdx], total=caseObj.rounds.length;
+  casePlayEl.innerHTML=
+    `<div class="quiz-progress"><i style="width:${caseIdx/total*100}%"></i></div>
+     <div class="quiz-q"><div class="case-meta"><span class="qnum">${caseObj.icon} ${caseObj.name} · Round ${caseIdx+1} of ${total}</span><button class="btn" id="caseExit" style="padding:4px 12px;">Exit case</button></div>
+     <p class="lead" style="font-size:0.92rem;margin:0;">${r.scene}</p>
+     ${chartBox(r.chart)}
+     <div class="fresher-hint">${r.read}</div>
+     <div class="callout tip case-cue"><b>Look for:</b> ${r.cue}</div>
+     <h3>${r.q}</h3>
+     <div id="caseOpts">${r.o.map((o,i)=>`<button class="opt" data-i="${i}">${o}</button>`).join('')}</div>
+     <div id="caseExplain"></div></div>`;
+  document.querySelectorAll('#caseOpts .opt').forEach(b=>b.addEventListener('click',()=>answerCase(+b.dataset.i)));
+  document.getElementById('caseExit').addEventListener('click',renderCaseHome);
+}
+function answerCase(i){
+  if(caseAnswered) return; caseAnswered=true;
+  const r=caseObj.rounds[caseIdx], right=(i===r.c);
+  document.querySelectorAll('#caseOpts .opt').forEach((b,bi)=>{
+    b.disabled=true;
+    if(bi===r.c) b.classList.add('correct'); else if(bi===i) b.classList.add('wrong');
+  });
+  caseResults.push(right);
+  const last=caseIdx===caseObj.rounds.length-1;
+  document.getElementById('caseExplain').innerHTML=
+    `<div class="explain">${right?'<b>Correct.</b> ':'<b>Not quite.</b> '}${r.e}</div>
+     <button class="btn primary" id="caseNext" style="margin-top:12px;">${last?'See result':'Next round'}</button>`;
+  document.getElementById('caseNext').addEventListener('click',()=>{caseIdx++;renderCaseRound();});
+}
+function shareText(){
+  const score=caseResults.filter(Boolean).length;
+  const lines=['🔎 Pharma Analytics Field Guide',`Case file: ${caseObj.icon} ${caseObj.name}`,`${caseResults.map(x=>x?'🟩':'🟥').join('')}  ${score}/${caseResults.length}`,`Track: ${trackLabels[track]}`];
+  if(/^https?:/.test(location.protocol)) lines.push(location.href.split('#')[0]);
+  return lines.join('\n');
+}
+async function copyShare(text,btn){
+  let ok=false;
+  try{ await navigator.clipboard.writeText(text); ok=true; }
+  catch(e){
+    try{ const t=document.createElement('textarea'); t.value=text; t.style.cssText='position:fixed;opacity:0;'; document.body.appendChild(t); t.select(); ok=document.execCommand('copy'); t.remove(); }catch(e2){}
+  }
+  btn.textContent=ok?'Copied ✓':'Select the text above and copy';
+}
+function endCase(){
+  const total=caseResults.length, score=caseResults.filter(Boolean).length;
+  const saved=caseSaved(), prev=saved[caseObj.id];
+  saved[caseObj.id]={best:Math.max(score,prev?prev.best:0)}; store.set('paf_cases',saved);
+  // overall case accuracy = best score per played case ÷ rounds in those cases; feeds the shared "best quiz score" stat
+  const played=cases.filter(c=>saved[c.id]);
+  const pct=Math.round(played.reduce((a,c)=>a+saved[c.id].best,0)/played.reduce((a,c)=>a+c.rounds.length,0)*100);
+  store.set('paf_casepct',Math.max(store.get('paf_casepct',0),pct)); updateStats();
+  const msg=score===total?'Clean sweep. You read that case like a seasoned analyst.':score>=total/2?'Solid read. Review the rounds you missed, then replay.':'Tough case. Work through the explanations, then run it again.';
+  const text=shareText();
+  casePlayEl.innerHTML=
+    `<div class="quiz-progress"><i style="width:100%"></i></div>
+     <div class="quiz-q case-result"><div class="qnum">${caseObj.icon} ${caseObj.name} · Case closed</div>
+      <h3 style="font-size:1.6rem;margin-top:6px;">${score} / ${total}</h3>
+      <div class="emoji-grid">${caseResults.map(x=>x?'🟩':'🟥').join('')}</div>
+      <p class="lead" style="margin:6px auto 0;">${msg}</p>
+      <div class="share-card" id="shareCard"></div>
+      <div class="fc-controls">
+        <button class="btn primary" id="caseCopy">Copy result</button>
+        <button class="btn" id="caseAgain">Replay case</button>
+        <button class="btn" id="caseBack">All cases</button>
+      </div></div>`;
+  document.getElementById('shareCard').textContent=text;
+  document.getElementById('caseCopy').addEventListener('click',e=>copyShare(text,e.currentTarget));
+  document.getElementById('caseAgain').addEventListener('click',()=>startCase(caseObj.id));
+  document.getElementById('caseBack').addEventListener('click',renderCaseHome);
+}
+renderCaseHome();
 
 /* ============ GLOSSARY ============ */
 const gloss=cards.slice().concat([
@@ -835,7 +1121,7 @@ renderGloss();
 /* ============ stats ============ */
 function updateStats(){
   document.getElementById('statKnown').textContent=Object.keys(store.get('paf_known',{})).length;
-  const best=store.get('paf_quizbest',0);
+  const best=Math.max(store.get('paf_quizbest',0),store.get('paf_casepct',0));
   document.getElementById('statQuiz').textContent= best?best+'%':'n/a';
 }
 updateStats();
